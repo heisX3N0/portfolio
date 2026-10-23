@@ -44,7 +44,7 @@ const {
 const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undefined;
 const image = new URL(ogImagePath(ogImage), Astro.site);
 // The site image shows the name with the root line; a role page passes the name and full CV title its image shows.
-const imageAlt = ogImageAlt ?? (ogImage === SITE_OG ? `${site.name}: ${site.rootLine}` : title);
+const imageAlt = ogImageAlt ?? `${site.name}: ${site.rootLine}`;
 // The CSP in public/_headers allows the theme script by its hash. A Windows checkout gives it CRLF line endings,
 // which would change the hash, so it is always built with LF.
 const theme = themeScript.replace(/\r\n?/g, '\n');

@@ -113,7 +113,7 @@ test('the BA page: short title and description in search and sharing, the full C
   assert.equal(meta(html, 'description'), short);
   assert.equal(meta(html, 'og:description'), short);
   // Refused: the short title anywhere the CV title must appear.
-  assert.equal(decode(html.match(/<p class="hero__title"[^>]*>([^<]+)<\/p>/)?.[1]), cvTitle, 'hero');
+  assert.equal(decode(html.match(/<p class="(?:[^"]* )?hero__title(?: [^"]*)?"[^>]*>([^<]+)<\/p>/)?.[1]), cvTitle, 'hero');
   assert.equal(meta(html, 'og:image:alt'), `${site.name} | ${cvTitle}`, 'og:image:alt');
   assert.equal(jsonLd(html)[0]?.jobTitle, cvTitle, 'JSON-LD jobTitle');
 });
