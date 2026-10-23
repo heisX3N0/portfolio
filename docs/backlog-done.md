@@ -2,6 +2,25 @@
 
 Finished backlog items, newest first, with what shipped, owner decisions (dated) and deviations.
 
+- [x] **P3 Case studies** (L). Merged 2026-10-23 in `266b19f` ([PR #5](https://github.com/heisX3N0/portfolio/pull/5); commits `a3e5f4c`, `dec15d1`, `9eb89fb`).
+  - **Shipped:**
+    - Six case study pages from one template (SPEC 4.3), written only from the SPEC 5 fact sheets: header and metadata, At a glance, Context, The problem, What I did, Artefacts, Outcome, build notes, What I learned, further reading, previous and next.
+    - `/work/` with All, Banking and AI products filters: plain links and CSS `:target`, so they work without JavaScript.
+    - Artefacts as frontmatter data (`table`, `flow`, `funnel`, `decision`, `swimlane`), drawn at build time by `src/lib/diagrams.ts`. Each diagram is drawn wide and narrow, the figure shows the one that fits, and the text alternative is generated from the same data.
+    - The P1 design review fix: `Figure` no longer scrolls sideways, and tables have their own `ArtefactTable` outside `role="img"`.
+    - Artefact thumbnails on every case study card (`WorkCard`).
+    - Checks: `findLiveClaims` (Performance Buddy) and `findUnlabelledProjections` (aggregator). `PENDING_PATHS` is empty.
+    - 116 tests, 43 of them new. CI green on `9eb89fb`. Lighthouse 100 in every category on `/work/` and the aggregator case study, mobile and desktop (local, one run each). The production deploy of `266b19f` succeeded; I checked all eight new pages, the sitemap (10 URLs) and the projected-figures sentence on the live site.
+  - **Owner decisions (2026-10-23):**
+    - Copy approved as written, including the parts beyond the fact sheets' own words: the GPT Investor funnel steps, success metric and second lesson; the aggregator swimlane steps; the Merge X failure table; the Closa "Apply both limits per day" row; the Performance Buddy "Regional leader" row; the Aimery acceptance criteria; the Team fields; the `/work/` introduction.
+    - Shorter case studies accepted: aggregator (478 words), Merge X (510) and GPT Investor (about 480) stay under SPEC 4.3's 600-word target. The test floor is 450.
+  - **Deviations:**
+    - Case study files stay `.md`, not SPEC 9.2's `.mdx`: artefacts are data, not components in the body.
+    - The P3 item had no Tests or Cost line when picked up; the PR wrote both (negative cases first).
+    - The fact sheet's lesson "the riskiest bugs live in data quality" became "sit in", so the live-claim check needs no exception.
+    - Lighthouse gained `/work/` and one case study. The BA page and About are still not in the Lighthouse list (that predates P3).
+    - `/code-review` (high) found 8 issues: 5 fixed, 2 settled by the owner, 1 left (the projection check can't judge meaning).
+
 - [x] **P2 Root, BA role page and About** (L). Merged 2026-10-23 in `6a321a6` ([PR #4](https://github.com/heisX3N0/portfolio/pull/4); commit `8b5515e`).
   - **Shipped:**
     - Content collections with Zod schemas in `src/lib/schemas.ts`: site, roles, work (card fields only), about, experience, certifications, writing.
