@@ -1,5 +1,5 @@
-# CI for every PR (SPEC 9.4): install, type check, build, tests (including the headless Chrome layout checks) and internal links, external links, Lighthouse.
-# The figures check joins in P4.
+# CI for every PR (SPEC 9.4): install, type check, build, tests (the figures check, internal links, SEO and security
+# header checks, and the headless Chrome layout and CSP checks), external links, Lighthouse.
 name: CI
 
 on:
@@ -39,7 +39,7 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Tests and internal link check
+      - name: Tests, figures check and internal link check
         run: pnpm test
 
       - name: External link check

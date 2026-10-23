@@ -44,7 +44,7 @@ test('a published role missing its page content fails; an unpublished one needs 
 });
 
 test('a role slug that is not a plain path segment, or that takes a site path, fails', () => {
-  for (const slug of ['Business Analyst', 'work', 'about', 'cv', 'styleguide', 'a/b']) {
+  for (const slug of ['Business Analyst', 'work', 'about', 'cv', 'styleguide', 'og', 'site', 'a/b']) {
     assert.equal(roleSchema.safeParse(role({ slug })).success, false, slug);
   }
 });

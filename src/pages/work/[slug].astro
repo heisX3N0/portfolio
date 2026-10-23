@@ -9,6 +9,7 @@ import ArtefactTable from '../../components/ArtefactTable.astro';
 import Linked from '../../components/Linked.astro';
 import { getSite } from '../../lib/site';
 import { getPublishedWorkEntries, workHref, type Work } from '../../lib/content';
+import { articleJsonLd } from '../../lib/seo';
 
 export async function getStaticPaths() {
   const entries = await getPublishedWorkEntries();
@@ -28,6 +29,7 @@ const { entry, prev, next } = Astro.props;
 const w = entry.data;
 const { Content } = await render(entry);
 const site = await getSite();
+const jsonLd = await articleJsonLd(Astro.site!, w, new URL(Astro.url.pathname, Astro.site));
 const meta = [
   ['Role', w.role],
   ['Organisation', w.organisation],
@@ -42,7 +44,7 @@ const glance = [
 ];
 ---
 
-<BaseLayout title={`${w.title} | ${site.name}`} description={w.summary}>
+<BaseLayout title={`${w.title} | ${site.name}`} description={w.summary} ogType="article" jsonLd={jsonLd}>
   <article class="container case">
     <header class="case__header">
       <p class="case__eyebrow"><a href="/work/">Work</a></p>

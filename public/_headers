@@ -1,7 +1,20 @@
-# Cloudflare Pages headers. Security headers and the CSP arrive in P4 (SPEC 9.5).
+# Cloudflare Pages headers (SPEC 9.5). scripts/tests/seo.test.mjs checks this file against the built pages.
+#
+# The CSP allows only this site and Cloudflare Web Analytics. script-src carries the sha256 hash of the inline theme
+# script in BaseLayout.astro (src/scripts/theme.js): change that script and the test fails, printing the new hash to
+# put here. Every stylesheet is a file (astro.config.mjs), so style-src needs no 'unsafe-inline'.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-TBnjqXeRzdzU78KqQZdRu9t8Au69rfxITCqOPdauaJU=' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
 
-# CV PDFs open in the browser and stay out of search results (SPEC 4.5).
+# CV PDFs open in the browser and stay out of search results (SPEC 4.5). The page CSP is removed here so no
+# browser's built-in PDF viewer is caught by object-src 'none'.
 /cv/*
+  ! Content-Security-Policy
   Content-Disposition: inline
   X-Robots-Tag: noindex
 

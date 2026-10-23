@@ -1,6 +1,7 @@
 ---
-// One diagram layout (src/lib/diagrams.ts) as inline SVG, drawn at most 1:1 so its text never grows past the
-// page's. Decorative to assistive technology: the figure around it carries the name and the text walk-through.
+// One diagram layout (src/lib/diagrams.ts) as inline SVG, drawn at most 1:1 (its width attribute, capped at 100% in
+// CSS; never a style attribute, which the CSP blocks) so its text never grows past the page's. Decorative to
+// assistive technology: the figure around it carries the name and the text walk-through.
 import type { Layout } from '../lib/diagrams';
 
 interface Props {
@@ -17,7 +18,6 @@ const { layout, variant } = Astro.props;
   viewBox={`0 0 ${layout.width} ${layout.height}`}
   width={layout.width}
   height={layout.height}
-  style={`max-width: ${layout.width}px`}
   aria-hidden="true"
   focusable="false"
 >

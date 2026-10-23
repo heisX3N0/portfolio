@@ -115,7 +115,7 @@ const tableSample = {
             <ul class="swatches">
               {Object.entries(palette[mode]).map(([name, hex]) => (
                 <li>
-                  <span class="swatch" style={`background:${hex}`} />
+                  <svg class="swatch" viewBox="0 0 1 1" aria-hidden="true" focusable="false"><rect width="1" height="1" fill={hex} /></svg>
                   <code>--{name}</code> <span class="muted">{hex}</span>
                 </li>
               ))}

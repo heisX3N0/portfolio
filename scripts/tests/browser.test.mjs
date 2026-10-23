@@ -2,11 +2,13 @@
 // Needs Chrome or Edge (CHROME_PATH overrides the search in scripts/lib/browser.mjs).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listHtmlFiles, pagePath } from '../lib/checks.mjs';
 import { serve, launch } from '../lib/browser.mjs';
 import { rowCount, outsideFirstScreen, overBudget } from '../lib/layout.mjs';
+import { parseHeaders } from '../lib/headers.mjs';
 
 const dist = fileURLToPath(new URL('../../dist/', import.meta.url));
 if (!existsSync(dist)) throw new Error('dist/ missing: run pnpm build first');
@@ -16,9 +18,27 @@ let server;
 let origin;
 let browser;
 
+// Every page is served with the CSP from _headers, as Cloudflare serves it, so each check below also runs under it.
+const csp = parseHeaders(readFileSync(join(dist, '_headers'), 'utf8')).find((r) => r.pattern === '/*')?.headers['content-security-policy'];
+if (!csp) throw new Error('dist/_headers has no Content-Security-Policy for /*');
+
 before(async () => {
-  ({ server, origin } = await serve(dist));
+  ({ server, origin } = await serve(dist, { 'Content-Security-Policy': csp }));
   browser = await launch();
+  // Record anything the CSP blocks; this runs outside the page's CSP, before its own scripts.
+  await browser.beforeEachLoad(`window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(e.violatedDirective + ' ' + (e.blockedURI || 'inline')));`);
+});
+
+// SPEC 9.5 (P4): the CSP blocks nothing the site needs, in either theme (the theme script is the one inline script).
+test('the CSP blocks nothing on any page', async () => {
+  for (const path of paths) {
+    for (const scheme of ['light', 'dark']) {
+      await browser.open(origin + path, { width: 1366, height: 768, scheme });
+      assert.deepEqual(await browser.evaluate('window.__csp'), [], `${path} (${scheme})`);
+      // The theme script ran under the CSP: it follows the system preference when nothing is stored.
+      assert.equal(await browser.evaluate('document.documentElement.dataset.theme'), scheme, `${path}: theme script blocked`);
+    }
+  }
 });
 
 after(async () => {

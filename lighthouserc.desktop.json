@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "staticDistDir": "./dist",
-      "url": ["/", "/work/", "/work/aggregator-onboarding-redesign/", "/styleguide/", "/404.html"],
+      "url": ["/", "/business-analyst/", "/work/", "/work/aggregator-onboarding-redesign/", "/styleguide/", "/404.html"],
       "numberOfRuns": 1,
       "settings": { "preset": "desktop" }
     },

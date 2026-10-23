@@ -9,6 +9,7 @@ import Writing from '../components/Writing.astro';
 import { getSite } from '../lib/site';
 import { getOrdered, getPublishedRoles, getWork, isPublished, missingCv, pick, workHref } from '../lib/content';
 import type { PublishedRole } from '../lib/schemas';
+import { personJsonLd } from '../lib/seo';
 
 export async function getStaticPaths() {
   const roles = await getPublishedRoles();
@@ -30,9 +31,17 @@ const steps = role.howIWork.map((s) => {
 });
 const writing = await getOrdered('writing');
 const cvTodo = missingCv(role.cvFile);
+const jsonLd = await personJsonLd(Astro.site!, role.title);
 ---
 
-<BaseLayout title={`${site.name} | ${role.title}`} description={role.supporting} cvFile={role.cvFile} contactLine={role.contactLine}>
+<BaseLayout
+  title={`${site.name} | ${role.title}`}
+  description={role.supporting}
+  cvFile={role.cvFile}
+  contactLine={role.contactLine}
+  ogImage={role.slug}
+  jsonLd={jsonLd}
+>
   <Hero
     name={site.name}
     title={role.title}
