@@ -1,0 +1,45 @@
+# Experience timeline on /about/ (SPEC 4.4 and 6.1), in display order. Titles and dates must match the CV exactly.
+# 2 to 3 highlights each, not the full CV bullets. Write dates with "to", never a dash.
+- id: access-financial-inclusion
+  role: Business Analyst & Project Manager, Financial Inclusion
+  organisation: Access Bank Plc, Lagos
+  dates: Mar 2024 to Present
+  highlights:
+    - Led the launch of the Beta 2.0 digital onboarding app and portal, mobilising ₦268.36M in deposits and opening 2,210 savings accounts through 403 field agents within 6 months.
+    - Contributed to initiatives that grew agency banking channel revenue by 64%.
+    - Promoted in 2026. I onboard and coach new BAs, PMs and interns.
+- id: access-partnerships
+  role: Business Analyst, Partnerships & Digital Capabilities
+  organisation: Access Bank Plc, Lagos
+  dates: Jun 2023 to Feb 2024
+  highlights:
+    - Turned ambiguous needs into 10+ requirements documents with end-to-end process flows for partner initiatives with MoMo PSB (MTN's payment service bank), TeamApt and Paystack.
+    - Led requirements for the Access Switch Fee Module enhancement and the DCIR Web Merchant Manager and Dispute Resolution Portal, modelling the DCIR processes in BPMN.
+- id: au-startups
+  role: Curator / Product Manager
+  organisation: AU-Startups
+  dates: Sep 2022 to May 2023
+  highlights:
+    - Grew an African startup publication 9x.
+    - Managed partnerships with GITEX Africa and IATF.
+- id: aimery
+  role: "Founder, Product & BA Lead: Aimery"
+  organisation: Version Phi
+  dates: Sep 2026 to Present
+  highlights:
+    - Wrote the solution specification for an AI assistant that tailors a resume to a job posting, and directed the build with AI coding agents.
+    - Tested it for prompt injection and fixed it, so injected postings scored back in the clean range.
+- id: merge-x
+  role: "Founder, Product & BA Lead: Merge X"
+  organisation: Version Phi
+  dates: Oct 2026 to Present
+  highlights:
+    - Turned a mail merge prototype's failures into a requirements document and 100+ backlog items.
+    - Directed AI coding agents to ship the full sending loop in 6 days. In private beta.
+- id: gpt-investor
+  role: "Product Lead: GPT Investor"
+  organisation: GPT Investor
+  dates: Mar 2024 to Present
+  highlights:
+    - Led requirements elicitation and user analysis, including 15+ user interviews, for personalised AI stock digests, growing to 10,000+ downloads.
+    - Data-driven iterations improved retention by 25%.

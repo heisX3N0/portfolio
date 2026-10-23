@@ -38,16 +38,47 @@ const rect = (selector) =>
   })()`;
 
 for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }]) {
-  test(`styleguide hero: h1, proof strip and Download CV in the first screen at ${size.width}x${size.height}`, async () => {
-    for (const scheme of ['light', 'dark']) {
-      await browser.open(`${origin}/styleguide/`, { ...size, scheme });
-      const items = {
-        h1: await browser.evaluate(rect('.hero h1')),
-        'proof strip': await browser.evaluate(rect('.hero [data-proof-strip]')),
-        'Download CV': await browser.evaluate(rect('.hero [data-download-cv]')),
-      };
-      assert.deepEqual(outsideFirstScreen(items, size.height), [], `${scheme}: ${JSON.stringify(items)}`);
-    }
+  for (const path of ['/business-analyst/', '/styleguide/']) {
+    test(`${path} hero: h1, proof strip and Download CV in the first screen at ${size.width}x${size.height}`, async () => {
+      for (const scheme of ['light', 'dark']) {
+        await browser.open(origin + path, { ...size, scheme });
+        const items = {
+          h1: await browser.evaluate(rect('.hero h1')),
+          'proof strip': await browser.evaluate(rect('.hero [data-proof-strip]')),
+          'Download CV': await browser.evaluate(rect('.hero [data-download-cv]')),
+        };
+        assert.deepEqual(outsideFirstScreen(items, size.height), [], `${scheme}: ${JSON.stringify(items)}`);
+      }
+    });
+  }
+
+  test(`root hero: name, root line and Download CV in the first screen at ${size.width}x${size.height}`, async () => {
+    await browser.open(`${origin}/`, size);
+    const items = {
+      h1: await browser.evaluate(rect('.hero h1')),
+      'root line': await browser.evaluate(rect('.hero .hero__positioning')),
+      'Download CV': await browser.evaluate(rect('.hero [data-download-cv]')),
+    };
+    assert.deepEqual(outsideFirstScreen(items, size.height), [], JSON.stringify(items));
+  });
+}
+
+// The BA proof strip shows ₦ in the serif; the About timeline shows it in Inter.
+for (const [path, file, family] of [
+  ['/business-analyst/', 'source-serif-4-naira.woff2', 'Source Serif 4'],
+  ['/about/', 'inter-naira.woff2', 'Inter'],
+]) {
+  test(`${path}: the naira sign loads ${file}, not a latin-ext subset`, async () => {
+    await browser.open(origin + path, { width: 1366, height: 768 });
+    const fonts = await browser.evaluate(
+      `performance.getEntriesByType('resource').filter((e) => e.name.endsWith('.woff2')).map((e) => e.name.split('/').pop())`,
+    );
+    assert.ok(fonts.includes(file), `${file} not loaded: ${fonts}`);
+    assert.ok(!fonts.some((f) => f.includes('latin-ext')), `latin-ext loaded: ${fonts}`);
+    const loaded = await browser.evaluate(
+      `[...document.fonts].filter((f) => f.unicodeRange.toUpperCase().includes('20A6') && f.status === 'loaded').map((f) => f.family)`,
+    );
+    assert.ok(loaded.some((f) => f.replace(/"/g, '') === family), `no loaded ${family} face covers U+20A6: ${loaded}`);
   });
 }
 

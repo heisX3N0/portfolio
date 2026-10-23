@@ -1,0 +1,106 @@
+---
+// "How I work" (SPEC 4.1 item 4): an HTML and CSS flow, not a diagram, so it never scrolls sideways.
+// A row of steps on wide screens, a numbered vertical list on narrow ones. A step's "Example:" line
+// shows only when the page passes it, which it does only while that case study is published.
+interface Props {
+  steps: { step: string; line: string; artefacts?: string; example?: { title: string; href: string } }[];
+}
+
+const { steps } = Astro.props;
+---
+
+<ol class="flow">
+  {
+    steps.map((s) => (
+      <li class="flow__step">
+        <h3 class="flow__name">{s.step}</h3>
+        <p class="flow__line">{s.line}</p>
+        {s.artefacts && <p class="flow__artefacts">Artefacts: {s.artefacts}</p>}
+        {s.example && (
+          <p class="flow__example">
+            Example: <a href={s.example.href}>{s.example.title}</a>
+          </p>
+        )}
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .flow {
+    counter-reset: step;
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Mobile: a number in a ring on the left, joined to the next step by a rule. */
+  .flow__step {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 var(--space-5) 3.25rem;
+  }
+  .flow__step::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--accent);
+    font-weight: 600;
+    font-variant-numeric: lining-nums;
+  }
+  .flow__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: calc(1.125rem - 1px);
+    top: 2.25rem;
+    bottom: 0;
+    width: 2px;
+    background: var(--gold);
+  }
+  .flow__name {
+    margin: 0;
+    padding-top: 0.25rem;
+    font-size: var(--step-1);
+  }
+  .flow__line,
+  .flow__artefacts,
+  .flow__example {
+    margin: var(--space-2) 0 0;
+  }
+  .flow__line {
+    color: var(--muted);
+  }
+  .flow__artefacts,
+  .flow__example {
+    font-size: var(--step--1);
+  }
+
+  /* Wide screens: one row, the number above each step and a gold rule running between them. */
+  @media (min-width: 64rem) {
+    .flow {
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+      gap: var(--space-5);
+    }
+    .flow__step {
+      padding: 3.25rem 0 0;
+    }
+    .flow__step:not(:last-child)::after {
+      left: 2.25rem;
+      right: calc(-1 * var(--space-5));
+      top: calc(1.125rem - 1px);
+      bottom: auto;
+      width: auto;
+      height: 2px;
+    }
+  }
+</style>

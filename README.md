@@ -1,6 +1,6 @@
 # Portfolio
 
-Source for `boluwatife.olapade.site`: a static Astro site built from [SPEC.md](SPEC.md). The full owner guide (editing content, adding a case study, publishing a role page, replacing a CV, the headshot) arrives in P5.
+Source for `boluwatife.olapade.site`: a static Astro site built from [SPEC.md](SPEC.md). Editing content and replacing a CV are below; the full owner guide (adding a case study, the headshot, deploying) arrives in P5.
 
 ## Run it locally
 
@@ -17,9 +17,38 @@ corepack pnpm lhci       # Lighthouse, mobile then desktop (needs Chrome)
 
 The style guide is at `/styleguide/`.
 
-## Add the BA CV
+## Editing content
 
-TODO(owner): add the current BA CV as `public/cv/business-analyst.pdf` (source: "Boluwatife Olapade - Senior Business Analyst, AI.pdf" in your Google Drive). Keep that file name; replace the file to update it.
+Every word on the site lives in `src/content/`. Edit a file, push, and the site rebuilds. The build fails with a message naming the file and field if something doesn't fit its schema (`src/lib/schemas.ts`), so a typo can't publish a broken page.
+
+| File | What it holds | Shown on |
+| --- | --- | --- |
+| `site.yaml` | Name, root line and introduction, the root page's 3 selected case studies, email, LinkedIn, GitHub, Substack, location, default CV, headshot switch | Every page |
+| `roles/business-analyst.md` | The BA role page: title (must match the CV), positioning and supporting lines, proof strip, "How I work", tools, featured case studies, CV file, contact line | `/business-analyst/` |
+| `roles/project-manager.md`, `roles/product-manager.md` | `published: false` until each role's spec addendum and CV exist | Nowhere |
+| `work/*.md` | One case study each. For now, only the card: title, one-line outcome, tags, figure | Role page and `/` cards |
+| `about.md` | The bio (below the `---` lines), "How this site was built", education | `/about/` |
+| `experience.yaml` | The timeline: role, organisation, dates, 2 to 3 highlights | `/about/` |
+| `certifications.yaml` | Name, issuer and badge link | `/about/` |
+| `writing.yaml` | Substack groups and posts | Role page (3 newest per group), `/about/` (all) |
+
+Rules the content must follow (SPEC.md): every number must be in SPEC 6.2; no em or en dashes (write "Mar 2024 to Present"); British spelling; never the phone number.
+
+- **Order:** lists show in the order they are in the file. Move an entry up or down to reorder it.
+- **YAML text with a colon and a space** (`like: this`) must go in quotes, or on the next line after `>-` as in `about.md`.
+- **Role pages:** a role file with `published: false` is not built, linked or listed. To publish one, fill in every field as in `business-analyst.md` (the build says which are missing) and set `published: true`. Role pages never link to each other.
+- **"How I work" examples:** a step's `example` is a case study file name (without `.md`). Its "Example:" line shows only while that case study is published.
+- **Case studies:** `draft: true` keeps one out of the live site. P3 adds the case study pages; until then the cards link to pages that don't exist yet.
+
+## Replace a CV
+
+Each role's CV is `public/cv/<role>.pdf` (the BA one is `public/cv/business-analyst.pdf`). Replace the file, keeping its name, and push: links never change. CVs open in the browser and are kept out of search results (`public/_headers`). If a role's CV file is missing, its page shows a `TODO(owner)` line and the build output lists it.
+
+The CV PDF contains your phone number. The repository is public, so the file (and every earlier version of it, in the git history) can be downloaded from GitHub as well as from the site.
+
+## Fonts
+
+Inter and Source Serif 4 are self-hosted Latin files in `public/fonts/`. The naira sign is not in them, so each family has a naira-only file (`inter-naira.woff2`, `source-serif-4-naira.woff2`, about 1.2 KB each) that a browser downloads only on a page that shows ₦. To regenerate them after a font upgrade, cut U+20A6 from the fontsource `latin-ext-wght-normal` files with [subset-font](https://www.npmjs.com/package/subset-font) (WOFF2 output, keeping the weight axis), outside the repo.
 
 ## Cloudflare Pages setup (owner steps)
 

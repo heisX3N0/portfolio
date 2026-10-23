@@ -2,7 +2,13 @@
 site:
   name: Boluwatife Olapade
   rootLine: I work where business, delivery and product meet.
-  rootIntro: A Business Analyst and Project Manager at Access Bank who also builds AI products through Version Phi.
+  # The root page's introduction (SPEC 2.3 and 4.0), under the root line.
+  rootIntro: A Business Analyst and Project Manager at Access Bank who also builds AI products through Version Phi. CBAP-certified, with 4 years across banking, payments and AI products.
+  # The root page's "Selected work" row: exactly 3 case study file names (src/content/work/), in order.
+  selectedWork:
+    - aimery-ai-requirements
+    - closa-cbn-compliance
+    - merge-x-requirements-from-failure
   email: olapadeben@gmail.com
   linkedin: https://www.linkedin.com/in/boluwatife-olapade
   github: https://github.com/heisX3N0

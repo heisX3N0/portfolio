@@ -1,0 +1,89 @@
+---
+// Substack writing (SPEC 4.1 item 5 and 4.4 item 6): each group newest first, ending with "More on Substack".
+// Role pages pass limit 3; About shows every post.
+import { formatDate, isoDate } from '../lib/content';
+
+interface Props {
+  groups: { title: string; note?: string; seriesUrl: string; posts: { title: string; description: string; date: Date; url: string }[] }[];
+  substack: string;
+  limit?: number;
+}
+
+const { groups, substack, limit } = Astro.props;
+const shown = groups.map((g) => ({
+  ...g,
+  posts: [...g.posts].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, limit),
+}));
+---
+
+<div class="writing">
+  {
+    shown.map((g) => (
+      <div class="writing__group">
+        <h3>
+          <a href={g.seriesUrl}>{g.title}</a>
+        </h3>
+        {g.note && <p class="writing__note small muted">{g.note}</p>}
+        <ul class="writing__posts">
+          {g.posts.map((p) => (
+            <li>
+              <a class="writing__title" href={p.url}>{p.title}</a>
+              <span class="writing__desc">{p.description}</span>
+              <time datetime={isoDate(p.date)} class="small muted">{formatDate(p.date)}</time>
+            </li>
+          ))}
+        </ul>
+        <p class="writing__more">
+          <a href={substack}>More on Substack</a>
+        </p>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .writing {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .writing__group h3 {
+    margin: 0;
+    padding-top: var(--space-3);
+    border-top: 3px solid var(--gold);
+    font-size: var(--step-1);
+  }
+  .writing__group h3 a {
+    color: var(--text);
+  }
+  .writing__note {
+    margin: var(--space-2) 0 0;
+  }
+  .writing__posts {
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .writing__posts li {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--rule);
+  }
+  .writing__title {
+    font-weight: 600;
+  }
+  .writing__desc {
+    color: var(--muted);
+  }
+  .writing__more {
+    margin: var(--space-3) 0 0;
+    font-weight: 600;
+  }
+
+  @media (min-width: 64rem) {
+    .writing {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-7);
+    }
+  }
+</style>

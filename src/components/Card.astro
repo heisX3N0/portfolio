@@ -5,7 +5,7 @@ interface Props {
   title: string;
   href: string;
   summary: string;
-  tags: string[];
+  tags?: string[];
   figure?: string;
 }
 
@@ -13,7 +13,7 @@ const { title, href, summary, tags, figure } = Astro.props;
 const hasThumbnail = Astro.slots.has('thumbnail');
 ---
 
-<article class="card">
+<article class:list={['card', { 'card--no-figure': !figure }]}>
   {
     hasThumbnail && (
       <div class="card__thumb">
@@ -24,7 +24,11 @@ const hasThumbnail = Astro.slots.has('thumbnail');
   {figure && <p class="card__figure">{figure}</p>}
   <h3><a href={href}>{title}</a></h3>
   <p class="card__summary">{summary}</p>
-  <ul class="tags" aria-label="Tags">
-    {tags.map((tag) => <li class="tag">{tag}</li>)}
-  </ul>
+  {
+    tags && tags.length > 0 && (
+      <ul class="tags" aria-label="Tags">
+        {tags.map((tag) => <li class="tag">{tag}</li>)}
+      </ul>
+    )
+  }
 </article>

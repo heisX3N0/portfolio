@@ -7,34 +7,18 @@ import ProofStrip from '../components/ProofStrip.astro';
 import Card from '../components/Card.astro';
 import Figure from '../components/Figure.astro';
 import Icon from '../components/Icon.astro';
+import HowIWork from '../components/HowIWork.astro';
+import { getEntry } from 'astro:content';
 import { getSite } from '../lib/site';
 import { palette, pairs, contrast } from '../lib/palette';
 
 const site = await getSite();
 
-// BA role page copy (SPEC 2.1, 4.1). P2 moves this into src/content/roles/business-analyst.md.
-const ba = {
-  title: 'Business Analyst | AI & Digital Solutions | CBAP | PSPO II',
-  positioning: 'Business Analyst who builds with AI.',
-  supporting:
-    'I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build, then test that what ships is what was needed. CBAP-certified, with 4 years across banking, payments and AI products.',
-  contactLine: "Hiring for a BA or AI BA role? I'd like to hear about it.",
-  proof: [
-    { figure: '4 weeks', text: 'First bank to comply with a new CBN limits circular' },
-    { figure: '₦268.36M', text: 'Deposits mobilised in 6 months (Beta 2.0)' },
-    { figure: '10,000+', text: 'App downloads (GPT Investor)' },
-    { figure: 'Live', text: 'Prompt-injection tested AI product (Aimery)' },
-    { figure: 'CBAP', text: 'and PSPO II certified' },
-  ],
-};
-
-const steps = [
-  { step: 'Discover', line: 'Stakeholder interviews, workshops, current-state mapping' },
-  { step: 'Model', line: 'BPMN and swimlane diagrams, customer journeys, data and access rules' },
-  { step: 'Specify', line: 'Solution requirements documents, user stories, acceptance criteria, Definition of Ready' },
-  { step: 'Deliver', line: 'Backlog refinement, sprint planning, vendor and dev coordination' },
-  { step: 'Validate', line: 'SIT/UAT, sign-off, production readiness, monitoring' },
-];
+// The BA role page's own content file, so the style guide always shows the live copy.
+const entry = await getEntry('roles', 'business-analyst');
+if (!entry?.data.published) throw new Error('styleguide needs the published business-analyst role');
+const ba = { ...entry.data, proof: entry.data.proofStrip };
+const steps = ba.howIWork;
 ---
 
 <BaseLayout
@@ -180,9 +164,17 @@ const steps = [
       </p>
       <ProofStrip items={ba.proof} />
       <p class="small muted sg-gap">
-        TODO(P2): the naira sign falls back to a system font here, because it is outside the Latin subset. P2 adds a small
-        naira-only font file rather than the 85 KB extended subset.
+        The naira sign comes from a naira-only font file per family (about 1.2 KB each), loaded only on pages that use it.
       </p>
+    </section>
+
+    <section aria-labelledby="sg-how">
+      <h2 id="sg-how">How I work</h2>
+      <p class="muted small">
+        An HTML list, not a diagram, so it never scrolls sideways: a row on wide screens, numbered steps down the page on
+        narrow ones. On the role page each step can end with one "Example:" link to a published case study.
+      </p>
+      <HowIWork steps={steps.map(({ step, line }) => ({ step, line }))} />
     </section>
 
     <section aria-labelledby="sg-headshot">

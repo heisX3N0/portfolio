@@ -2,9 +2,17 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
-// Pages that later phases build (P2: /business-analyst/, /about/, the CV; P3: /work/).
-// TODO: remove each path in the PR that builds it.
-export const PENDING_PATHS = ['/business-analyst/', '/work/', '/about/', '/cv/business-analyst.pdf'];
+// Pages P3 builds: the case study index and the six case studies that P2's cards already link to.
+// TODO(P3): remove each path in the PR that builds it.
+export const PENDING_PATHS = [
+  '/work/',
+  '/work/closa-cbn-compliance/',
+  '/work/performance-buddy-access-control/',
+  '/work/aimery-ai-requirements/',
+  '/work/merge-x-requirements-from-failure/',
+  '/work/aggregator-onboarding-redesign/',
+  '/work/gpt-investor-discovery/',
+];
 
 export function listHtmlFiles(dir) {
   const out = [];
@@ -84,6 +92,33 @@ export function findDashes(html) {
   const hits = [];
   for (const m of text.matchAll(/.{0,20}[–—].{0,20}/g)) hits.push(m[0].trim());
   return hits;
+}
+
+// Links to any of the given role pages (SPEC 2.4: role pages never link to each other), root-relative or absolute.
+export function findRoleLinks(html, slugs) {
+  const hits = [];
+  for (const m of html.matchAll(/\shref="([^"]+)"/g)) {
+    let path;
+    try {
+      path = new URL(m[1], 'https://boluwatife.olapade.site/').pathname;
+    } catch {
+      continue;
+    }
+    if (slugs.some((slug) => path === `/${slug}` || path.startsWith(`/${slug}/`))) hits.push(m[1]);
+  }
+  return hits;
+}
+
+// Slug and published flag of each role content file (src/content/roles/*.md), read from its frontmatter.
+export function readRoles(dir) {
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => {
+      const front = readFileSync(join(dir, name), 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '';
+      const slug = front.match(/^slug:\s*['"]?([^'"\s]+)/m)?.[1];
+      if (!slug) throw new Error(`${name}: no slug in frontmatter`);
+      return { file: name, slug, published: /^published:\s*true\b/m.test(front) };
+    });
 }
 
 export function sitemapUrls(xml) {
