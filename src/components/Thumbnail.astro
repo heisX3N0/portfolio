@@ -1,0 +1,58 @@
+---
+// A case study card's artefact thumbnail (the P1.5 card slot): a small, decorative sketch of the kind of artefact
+// the case study opens with. It carries no information the card text doesn't, so it is hidden from assistive technology.
+import type { Artefact } from '../lib/schemas';
+
+interface Props {
+  kind: Artefact['kind'];
+}
+
+const { kind } = Astro.props;
+---
+
+<svg class="thumb" viewBox="0 0 300 90" aria-hidden="true" focusable="false">
+  {
+    kind === 'table' && (
+      <>
+        <rect class="thumb__head" x="10" y="8" width="280" height="16" rx="2" />
+        {[30, 48, 66].map((y) => [10, 82, 154, 226].map((x) => <rect class="thumb__cell" x={x} y={y} width="64" height="12" rx="2" />))}
+      </>
+    )
+  }
+  {
+    kind === 'flow' && (
+      <>
+        {[8, 82, 156, 230].map((x) => <rect class="thumb__box" x={x} y="27" width="62" height="36" rx="4" />)}
+        <path class="thumb__arrow" d="M70 45 H82 M144 45 H156 M218 45 H230" />
+      </>
+    )
+  }
+  {
+    kind === 'funnel' && (
+      <>
+        {[0, 1, 2, 3].map((i) => <rect class={i === 2 ? 'thumb__box thumb__box--mark' : 'thumb__box'} x={30 + i * 26} y={6 + i * 21} width={240 - i * 52} height="15" rx="3" />)}
+      </>
+    )
+  }
+  {
+    kind === 'decision' && (
+      <>
+        {[6, 34, 62].map((y) => <rect class="thumb__box" x="30" y={y} width="110" height="20" rx="3" />)}
+        {[6, 34, 62].map((y) => <rect class="thumb__cell" x="180" y={y} width="90" height="20" rx="3" />)}
+        <path class="thumb__arrow" d="M140 16 H180 M140 44 H180 M140 72 H180 M85 26 V34 M85 54 V62" />
+      </>
+    )
+  }
+  {
+    kind === 'swimlane' && (
+      <>
+        <rect class="thumb__lane" x="0" y="0" width="300" height="44" />
+        <rect class="thumb__lane" x="0" y="46" width="300" height="44" />
+        <rect class="thumb__box" x="16" y="10" width="64" height="24" rx="4" />
+        <rect class="thumb__box" x="118" y="56" width="64" height="24" rx="4" />
+        <rect class="thumb__box" x="220" y="10" width="64" height="24" rx="4" />
+        <path class="thumb__arrow" d="M80 22 H100 V68 H118 M182 68 H200 V22 H220" />
+      </>
+    )
+  }
+</svg>

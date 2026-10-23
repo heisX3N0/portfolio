@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { findBrokenLinks, findPhoneNumbers, findDashes, findMissingFragments, sitemapUrls } from '../lib/checks.mjs';
+import { findBrokenLinks, findPhoneNumbers, findDashes, findMissingFragments, sitemapUrls, findLiveClaims, findUnlabelledProjections } from '../lib/checks.mjs';
 
 function fixture(files) {
   const dir = mkdtempSync(join(tmpdir(), 'portfolio-check-'));
@@ -81,4 +81,20 @@ test('Lighthouse configs fail any category under 95, on mobile and desktop', () 
   }
   const desktop = JSON.parse(readFileSync(new URL('../../lighthouserc.desktop.json', import.meta.url), 'utf8'));
   assert.equal(desktop.ci.collect.settings.preset, 'desktop');
+});
+
+// P3 (SPEC 5.2, 5.4 and 11): Performance Buddy is never described as live, and projected aggregator figures are labelled.
+test('live check catches Performance Buddy described as live, launched or piloted', () => {
+  assert.deepEqual(findLiveClaims('The dashboard went live in March.'), ['live']);
+  assert.deepEqual(findLiveClaims('It launched to all regions.'), ['launched']);
+  assert.deepEqual(findLiveClaims('Now in pilot with two teams.'), ['pilot']);
+  assert.deepEqual(findLiveClaims('It was piloted, then rolled out.'), ['piloted', 'rolled out']);
+  assert.deepEqual(findLiveClaims('Deliver a single, testable access model. The project is in progress.'), []);
+});
+
+test('projection check fails projected aggregator figures that are not labelled as projected', () => {
+  assert.deepEqual(findUnlabelledProjections('The portal will handle 2M+ transactions and ₦100M+ revenue in year one.'), ['2M+', '₦100M+']);
+  assert.deepEqual(findUnlabelledProjections('Projected: 2M+ transactions. Revenue reached ₦100M+ in year one.'), ['₦100M+']);
+  assert.deepEqual(findUnlabelledProjections('99.9% uptime. Projected for year one: 2M+ transactions and ₦100M+ revenue.'), []);
+  assert.deepEqual(findUnlabelledProjections('2M+ transactions (projected)'), []);
 });

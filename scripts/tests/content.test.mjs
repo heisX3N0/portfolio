@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { roleSchema, workSchema, experienceSchema, writingGroupSchema } from '../../src/lib/schemas.ts';
 import { cvTodo } from '../../src/lib/cv.ts';
+import { linkParts } from '../../src/lib/links.ts';
 import { findRoleLinks, readRoles } from '../lib/checks.mjs';
 
 const proof = (n) => Array.from({ length: n }, (_, i) => ({ figure: `F${i}`, text: 'text' }));
@@ -54,10 +55,7 @@ test('a role CV outside /cv/ or not a PDF fails', () => {
 });
 
 test('a case study with an unknown tag or role fails', () => {
-  const work = {
-    title: 't', slug: 's', summary: 's', role: 'r', organisation: 'o', period: 'p',
-    tags: ['Banking'], roles: ['business-analyst'], order: 1, draft: false,
-  };
+  const work = study();
   assert.equal(workSchema.safeParse(work).success, true);
   assert.equal(workSchema.safeParse({ ...work, tags: ['Fintech'] }).success, false);
   assert.equal(workSchema.safeParse({ ...work, tags: [] }).success, false);
@@ -100,4 +98,87 @@ test('role link check catches a link to another role page, in any form', () => {
   assert.deepEqual(findRoleLinks('<a href="/product-manager">x</a>', others), ['/product-manager']);
   assert.deepEqual(findRoleLinks('<a href="https://boluwatife.olapade.site/project-manager/#work">x</a>', others), ['https://boluwatife.olapade.site/project-manager/#work']);
   assert.deepEqual(findRoleLinks('<a href="/about/">About</a><a href="/work/project-x/">x</a><a href="/cv/business-analyst.pdf">CV</a>', others), []);
+});
+
+// P3: case study pages (SPEC 4.3, 5 and 7). Negative cases first.
+// Function declarations are hoisted, so the P2 case study test above can use them too.
+function tableArtefact() {
+  return { kind: 'table', id: 'trace', caption: 'Traceability', label: 'Illustrative, simplified', columns: ['Clause', 'Rule'], rows: [['A', 'B']] };
+}
+function study(over = {}) {
+  return {
+    title: 't', slug: 's', summary: 's', role: 'r', organisation: 'o', period: 'p',
+    tags: ['Banking'], roles: ['business-analyst'], order: 1, draft: false,
+    glance: { problem: 'p', role: 'r', produced: 'p', outcome: 'o' },
+    outcome: ['o'],
+    learned: ['a', 'b'],
+    artefacts: [tableArtefact()],
+    ...over,
+  };
+}
+const table = tableArtefact();
+const ok = (over) => workSchema.safeParse(study(over)).success;
+
+test('a case study with no artefact fails (SPEC 4.3 item 6)', () => {
+  assert.equal(ok({ artefacts: [] }), false);
+  const { artefacts, ...none } = study();
+  assert.equal(workSchema.safeParse(none).success, false);
+});
+
+test('an artefact with no caption, or an unknown label or kind, fails (SPEC 7)', () => {
+  const { caption, ...noCaption } = table;
+  assert.equal(ok({ artefacts: [noCaption] }), false);
+  assert.equal(ok({ artefacts: [{ ...table, label: 'Real data' }] }), false);
+  assert.equal(ok({ artefacts: [{ ...table, kind: 'image' }] }), false);
+});
+
+test('a table row that does not match its columns fails', () => {
+  assert.equal(ok({ artefacts: [{ ...table, rows: [['A']] }] }), false);
+  assert.equal(ok({ artefacts: [{ ...table, rows: [['A', 'B', 'C']] }] }), false);
+  assert.equal(ok({ artefacts: [{ ...table, rows: [] }] }), false);
+});
+
+test('two artefacts with the same id fail (their ids label the figure)', () => {
+  assert.equal(ok({ artefacts: [table, table] }), false);
+});
+
+test('"What I learned" needs 2 to 3 bullets, and At a glance all four items (SPEC 4.3)', () => {
+  assert.equal(ok({ learned: ['a'] }), false);
+  assert.equal(ok({ learned: ['a', 'b', 'c', 'd'] }), false);
+  assert.equal(ok({ glance: { problem: 'p', role: 'r', outcome: 'o' } }), false);
+});
+
+test('a swimlane step in a lane that is not listed, or a state outside 5 to 7 steps, fails (SPEC 5.4)', () => {
+  const steps = (n, lane = 'Bank') => Array.from({ length: n }, (_, i) => ({ lane, label: `Step ${i}` }));
+  const swim = (states) => ({ kind: 'swimlane', id: 'lanes', caption: 'c', label: 'Simplified', lanes: ['Agent', 'Bank'], states });
+  assert.equal(ok({ artefacts: [swim([{ title: 'Now', steps: steps(5, 'Platform') }])] }), false);
+  assert.equal(ok({ artefacts: [swim([{ title: 'Now', steps: steps(4) }])] }), false);
+  assert.equal(ok({ artefacts: [swim([{ title: 'Now', steps: steps(8) }])] }), false);
+  assert.equal(ok({ artefacts: [swim([{ title: 'Now', steps: steps(5) }])] }), true);
+});
+
+test('a flow needs 2 to 7 steps and a decision at least one check and an otherwise', () => {
+  const flow = (n) => ({ kind: 'flow', id: 'f', caption: 'c', steps: Array.from({ length: n }, () => ({ label: 'x' })) });
+  assert.equal(ok({ artefacts: [flow(1)] }), false);
+  assert.equal(ok({ artefacts: [flow(8)] }), false);
+  assert.equal(ok({ artefacts: [flow(4)] }), true);
+  const decision = { kind: 'decision', id: 'd', caption: 'c', checks: [{ question: 'q', yes: 'y' }], otherwise: 'none' };
+  assert.equal(ok({ artefacts: [{ ...decision, checks: [] }] }), false);
+  const { otherwise, ...noOtherwise } = decision;
+  assert.equal(ok({ artefacts: [noOtherwise] }), false);
+  assert.equal(ok({ artefacts: [decision] }), true);
+});
+
+test('a further reading link that is not a URL fails', () => {
+  assert.equal(ok({ furtherReading: [{ title: 't', url: 'substack/post' }] }), false);
+  assert.equal(ok({ furtherReading: [{ title: 't', url: 'https://xmusings.substack.com/p/x' }] }), true);
+});
+
+test('only https links in a content field become links; other brackets stay text', () => {
+  assert.deepEqual(linkParts('See [x](javascript:alert(1)) and [y](http://a.test).'), [{ text: 'See [x](javascript:alert(1)) and [y](http://a.test).' }]);
+  assert.deepEqual(linkParts('Live at [the demo](https://aimery.versionphi.com), free.'), [
+    { text: 'Live at ' },
+    { text: 'the demo', href: 'https://aimery.versionphi.com' },
+    { text: ', free.' },
+  ]);
 });

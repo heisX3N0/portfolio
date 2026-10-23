@@ -1,0 +1,16 @@
+---
+// A case study card: the shared Card with the thumbnail of the case study's first artefact.
+import Card from './Card.astro';
+import Thumbnail from './Thumbnail.astro';
+import { workHref, type Work } from '../lib/content';
+
+interface Props {
+  work: Work;
+}
+
+const { work } = Astro.props;
+---
+
+<Card title={work.title} href={workHref(work.slug)} summary={work.summary} tags={work.tags} figure={work.headlineFigure}>
+  <Thumbnail slot="thumbnail" kind={work.artefacts[0].kind} />
+</Card>
