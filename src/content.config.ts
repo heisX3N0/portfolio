@@ -1,22 +1,34 @@
 import { defineCollection } from 'astro:content';
-import { file } from 'astro/loaders';
-import { z } from 'astro/zod';
+import { file, glob } from 'astro/loaders';
+import { parse } from 'yaml';
+import {
+  siteSchema,
+  roleSchema,
+  workSchema,
+  experienceSchema,
+  certificationSchema,
+  writingGroupSchema,
+  aboutSchema,
+} from './lib/schemas';
 
-// P2 adds about, experience, certifications, writing, roles and work (SPEC 9.2).
-const site = defineCollection({
-  loader: file('src/content/site.yaml'),
-  schema: z.object({
-    name: z.string(),
-    rootLine: z.string(),
-    rootIntro: z.string(),
-    email: z.email(),
-    linkedin: z.url(),
-    github: z.url(),
-    substack: z.url(),
-    location: z.string(),
-    defaultCv: z.string().startsWith('/cv/'),
-    headshot: z.object({ show: z.boolean(), src: z.string() }),
-  }),
-});
+// SPEC 9.2. The schemas live in src/lib/schemas.ts so the Node tests can check them.
 
-export const collections = { site };
+// Collections come back sorted by id, so lists record their position: the order in the file is the display order.
+const ordered = (path: string) =>
+  file(path, {
+    parser: (text) => {
+      const items: unknown = parse(text);
+      if (!Array.isArray(items)) throw new Error(`${path} must be a YAML list (each entry starting with "- id:")`);
+      return items.map((item: Record<string, unknown>, position) => ({ ...item, position }));
+    },
+  });
+
+const site = defineCollection({ loader: file('src/content/site.yaml'), schema: siteSchema });
+const roles = defineCollection({ loader: glob({ pattern: '*.md', base: 'src/content/roles' }), schema: roleSchema });
+const work = defineCollection({ loader: glob({ pattern: '*.md', base: 'src/content/work' }), schema: workSchema });
+const experience = defineCollection({ loader: ordered('src/content/experience.yaml'), schema: experienceSchema });
+const certifications = defineCollection({ loader: ordered('src/content/certifications.yaml'), schema: certificationSchema });
+const writing = defineCollection({ loader: ordered('src/content/writing.yaml'), schema: writingGroupSchema });
+const about = defineCollection({ loader: glob({ pattern: 'about.md', base: 'src/content' }), schema: aboutSchema });
+
+export const collections = { site, roles, work, experience, certifications, writing, about };

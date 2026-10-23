@@ -34,10 +34,13 @@ Static Astro site built from `SPEC.md`. The spec is the source of truth for scop
 - On the owner's Windows machine, Application Control blocks Astro's native compiler (`astro.win32-x64-msvc.node`). Don't change that setting. Run locally with the official WebAssembly build instead: install `@astrojs/compiler-binding-wasm32-wasi` (same version as `@astrojs/compiler-binding`) with npm in a folder outside the repo, then set `NAPI_RS_FORCE_WASI=1` and `NODE_PATH=<that folder>/node_modules` for `check`, `build` and `dev`. CI and Cloudflare use the native binary.
 - `astro check` doesn't support TypeScript 7 yet: TypeScript stays on 6.
 - The theme toggle is an inline script in `BaseLayout.astro` (it must run before paint to avoid a flash). When the CSP lands (P4), its hash must be in `script-src`.
-- `₦` is outside the fonts' basic Latin subset; the latin-ext subset is loaded on demand by `unicode-range`. Check it renders after any font change.
+- `₦` is outside the fonts' basic Latin subset. Each family has a naira-only file (`*-naira.woff2`, about 1.2 KB, `unicode-range: U+20A6` in `tokens.css`); the browser test fails if a page loads the 85 KB latin-ext file instead. Regenerate both after any font upgrade (README "Fonts") and check ₦ renders.
 - `/styleguide/` must stay out of the sitemap (a test checks this).
-- Link check: `/business-analyst/`, `/work/`, `/about/` and `/cv/business-analyst.pdf` are excluded until P2 and P3 build them (`PENDING_PATHS` in `scripts/lib/checks.mjs`). Remove each in the PR that builds it. Internal links are checked by `pnpm test`; lychee in CI checks external links only.
+- Link check: `/work/` and the six `/work/<slug>/` pages the P2 cards link to are excluded until P3 builds them (`PENDING_PATHS` in `scripts/lib/checks.mjs`). Remove each in the PR that builds it. Internal links are checked by `pnpm test`; lychee in CI checks external links only.
 - The figures check (P4) must exempt `/styleguide/`: it shows hex codes and contrast ratios.
+- Astro collections come back sorted by id, not file order. The YAML list collections (`experience`, `certifications`, `writing`) get a `position` from their loader in `content.config.ts`; read them with `getOrdered()` (`src/lib/content.ts`), never `getCollection()` directly.
+- Code that runs at build can't find repo files from `import.meta.url` (it points into the build bundle); use `process.cwd()`, as `missingCv()` does.
+- Schemas live in `src/lib/schemas.ts`, free of `astro:content`, so `scripts/tests/content.test.mjs` can import them with Node's type stripping.
 
 ## Workflow
 

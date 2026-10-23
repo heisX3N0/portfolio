@@ -1,0 +1,35 @@
+# Certifications on /about/ (SPEC 6.3), in display order. Each url opens the badge; leave url out when there is none.
+- id: cbap
+  name: Certified Business Analysis Professional (CBAP)
+  issuer: IIBA
+  url: https://badges.iiba.org/5710c675-386a-4529-976c-604c7296e83e
+- id: pspo-ii
+  name: Professional Scrum Product Owner II (PSPO II)
+  issuer: Scrum.org
+  url: https://www.credly.com/badges/16628871-8a74-490d-9094-c876af65cc75/public_url
+- id: vertex-prompt-design
+  name: Prompt Design in Vertex AI
+  issuer: Google Cloud
+  url: https://www.credly.com/badges/38921c86-50ae-44b5-8e9a-1a07a9809ae3
+- id: ai-for-pm
+  name: AI for Product Management
+  issuer: Pendo
+  url: https://www.credly.com/badges/b940e1ff-71d0-48f7-b1cf-98bee032349d/public_url
+- id: business-analytics
+  name: Business Analytics Nanodegree
+  issuer: Udacity
+  url: https://www.udacity.com/certificate/e/ce684c50-2841-11ee-bf5d-4f286504c77c
+- id: product-analytics
+  name: Product Analytics
+  issuer: Product School & Mixpanel
+  url: https://drive.google.com/file/d/1QbhY4rhmJ2FwIUoj7FCW0N0jN6yZTZEi/view?usp=sharing
+- id: pmi-agile
+  name: Fundamentals of Agile Project Management
+  issuer: PMI
+  url: https://www.credly.com/badges/30605f10-6e6f-402d-a4c5-700ffddded1e
+- id: pmi-predictive
+  name: Fundamentals of Predictive Project Management
+  issuer: PMI
+  url: https://www.credly.com/badges/7f756916-06d0-453e-92b1-14ce2c7d9ce0/public_url
+- id: itil-4
+  name: ITIL 4 (training)

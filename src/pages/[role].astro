@@ -1,0 +1,87 @@
+---
+// Role page template (SPEC 4.1), one page per role file in src/content/roles/ with published: true.
+// Adding a role is a content task: a new file, no code. Role pages never link to each other (SPEC 2.4).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Card from '../components/Card.astro';
+import HowIWork from '../components/HowIWork.astro';
+import Writing from '../components/Writing.astro';
+import { getSite } from '../lib/site';
+import { getOrdered, getPublishedRoles, getWork, isPublished, missingCv, pick, workHref } from '../lib/content';
+import type { PublishedRole } from '../lib/schemas';
+
+export async function getStaticPaths() {
+  const roles = await getPublishedRoles();
+  return roles.map((role) => ({ params: { role: role.slug }, props: { role } }));
+}
+
+interface Props {
+  role: PublishedRole;
+}
+
+const { role } = Astro.props;
+const site = await getSite();
+const work = await getWork();
+const featured = pick(work, role.featuredWork, `roles/${role.slug}.md featuredWork`);
+const steps = role.howIWork.map((s) => {
+  const example = s.example ? work.get(s.example) : undefined;
+  if (s.example && !example) throw new Error(`roles/${role.slug}.md howIWork: no case study "${s.example}"`);
+  return { ...s, example: example && isPublished(example) ? { title: example.title, href: workHref(example.slug) } : undefined };
+});
+const writing = await getOrdered('writing');
+const cvTodo = missingCv(role.cvFile);
+---
+
+<BaseLayout title={`${site.name} | ${role.title}`} description={role.supporting} cvFile={role.cvFile} contactLine={role.contactLine}>
+  <Hero
+    name={site.name}
+    title={role.title}
+    positioning={role.positioning}
+    supporting={role.supporting}
+    workHref="#work"
+    cvFile={role.cvFile}
+    email={site.email}
+    linkedin={site.linkedin}
+    contactLine={role.contactLine}
+    location={site.location}
+    proof={role.proofStrip}
+    headshot={site.headshot}
+  />
+
+  <div class="container">
+    {cvTodo && <p class="todo">{cvTodo}</p>}
+
+    <section id="work" class="page-section" aria-labelledby="work-heading">
+      <h2 id="work-heading">Selected work</h2>
+      <ul class="card-grid">
+        {
+          featured.map((w) => (
+            <li>
+              <Card title={w.title} href={workHref(w.slug)} summary={w.summary} tags={w.tags} figure={w.headlineFigure} />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="page-section" aria-labelledby="how-heading">
+      <h2 id="how-heading">How I work</h2>
+      <HowIWork steps={steps} />
+      <p class="role-tools">Tools: {role.tools}</p>
+    </section>
+
+    <section class="page-section" aria-labelledby="writing-heading">
+      <h2 id="writing-heading">Writing</h2>
+      <Writing groups={writing} substack={site.substack} limit={3} />
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .role-tools {
+    margin: var(--space-5) 0 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+  }
+</style>

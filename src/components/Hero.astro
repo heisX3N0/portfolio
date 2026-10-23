@@ -3,12 +3,15 @@
 // proof strip overlapping its bottom edge on desktop. On mobile the supporting line drops below the
 // proof strip so the h1, proof strip and Download CV fit the first screen (SPEC 1.4). It is one element
 // in reading order (after the positioning line); only the visual order changes, and it holds no links.
+// The root page passes no title line, proof strip or contact line (SPEC 2.3: it does not repeat a role page's
+// proof strip): the supporting line then stays on the band at every width.
 import Icon from './Icon.astro';
 import ProofStrip from './ProofStrip.astro';
 
 interface Props {
   name: string;
-  title: string;
+  /** The gold title line; role pages pass the CV title. */
+  title?: string;
   positioning: string;
   supporting: string;
   /** Where "View my work" goes: the case studies section on the page. */
@@ -16,9 +19,9 @@ interface Props {
   cvFile: string;
   email: string;
   linkedin: string;
-  contactLine: string;
+  contactLine?: string;
   location: string;
-  proof: { figure: string; text: string }[];
+  proof?: { figure: string; text: string }[];
   /** SPEC 8: off by default. With it on, the image sits beside the name on desktop and above it on mobile. */
   headshot?: { show: boolean; src: string };
   /** The h1's id, for aria-labelledby. Pass a different one if a page ever shows two heroes. */
@@ -28,15 +31,16 @@ interface Props {
 const { name, title, positioning, supporting, workHref, cvFile, email, linkedin, contactLine, location, proof, headshot, headingId = 'hero-name' } =
   Astro.props;
 const showHeadshot = Boolean(headshot?.show && headshot.src);
+const hasProof = Boolean(proof?.length);
 ---
 
-<section class="container hero" aria-labelledby={headingId}>
+<section class:list={['container hero', { 'hero--no-proof': !hasProof }]} aria-labelledby={headingId}>
   <div class="hero__band" aria-hidden="true"></div>
   <div class:list={['hero__intro', { 'hero__intro--headshot': showHeadshot }]}>
     {showHeadshot && <img class="hero__headshot" src={headshot!.src} alt={name} width="160" height="160" />}
     <div>
       <h1 id={headingId}>{name}</h1>
-      <p class="hero__title">{title}</p>
+      {title && <p class="hero__title">{title}</p>}
       <p class="hero__positioning">{positioning}</p>
     </div>
   </div>
@@ -49,7 +53,7 @@ const showHeadshot = Boolean(headshot?.show && headshot.src);
     </a>
   </div>
   <aside class="hero__contact" aria-label="Contact details">
-    <p class="hero__contact-line">{contactLine}</p>
+    {contactLine && <p class="hero__contact-line">{contactLine}</p>}
     <ul class="hero__links">
       <li>
         <a href={`mailto:${email}`}><Icon name="mail" /><span class="hero__email">{email}</span><span class="hero__email-short">Email</span></a>
@@ -60,9 +64,13 @@ const showHeadshot = Boolean(headshot?.show && headshot.src);
     </ul>
     <p class="hero__location">{location}</p>
   </aside>
-  <div class="hero__proof">
-    <ProofStrip items={proof} />
-  </div>
+  {
+    hasProof && (
+      <div class="hero__proof">
+        <ProofStrip items={proof!} />
+      </div>
+    )
+  }
 </section>
 
 <style>
@@ -189,6 +197,21 @@ const showHeadshot = Boolean(headshot?.show && headshot.src);
   .hero__proof {
     grid-area: proof;
   }
+  /* No proof strip: the supporting line sits on the band, under the positioning line. */
+  .hero--no-proof {
+    grid-template-areas:
+      'intro'
+      'supporting'
+      'actions'
+      'contact';
+  }
+  .hero--no-proof .hero__band {
+    grid-row: 1 / -1;
+  }
+  .hero--no-proof .hero__supporting {
+    margin-top: var(--space-4);
+    color: var(--on-hero-muted);
+  }
 
   @media (min-width: 64rem) {
     .hero {
@@ -274,6 +297,15 @@ const showHeadshot = Boolean(headshot?.show && headshot.src);
     .hero__proof {
       position: relative;
       margin-top: -3.5rem;
+    }
+    .hero--no-proof {
+      grid-template-areas:
+        'intro contact'
+        'supporting contact'
+        'actions contact';
+    }
+    .hero--no-proof .hero__actions {
+      padding-bottom: var(--space-7);
     }
   }
 </style>

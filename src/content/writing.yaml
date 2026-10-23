@@ -1,0 +1,39 @@
+# Substack writing (SPEC 4.1 item 5). Role pages show the 3 newest posts per group; /about/ shows them all.
+# Use post URLs exactly as Substack gives them. Dates are YYYY-MM-DD.
+- id: gpt-investor
+  title: Building GPT Investor
+  note: Co-written with my co-founder.
+  seriesUrl: https://xmusings.substack.com/s/gpt-investor
+  posts:
+    - title: Rebuilding the Engine for Retail Investing
+      description: Inside Phase 1 of the new GPT Investor, and the roadmap for what comes next
+      date: 2026-05-30
+      url: https://xmusings.substack.com/p/rebuilding-the-engine-for-retail
+    - title: Say Hello to Tidbits
+      description: Your shortcut to smarter financial literacy
+      date: 2025-10-05
+      url: https://xmusings.substack.com/p/say-hello-to-tidbits
+    - title: A Fresh Look for a Smarter You
+      description: Inside our new app redesign
+      date: 2025-06-25
+      url: https://xmusings.substack.com/p/a-fresh-look-for-a-smarter-you
+    - title: Introducing Top Picks
+      description: Your shortcut to smarter investing
+      date: 2025-03-23
+      url: https://xmusings.substack.com/p/introducing-top-picks
+    - title: The Problem with Retail Investing
+      description: Why we built GPT Investor
+      date: 2025-01-04
+      url: https://xmusings.substack.com/p/the-problem-with-retail-investing
+- id: side-quests
+  title: Side Quests (building in public)
+  seriesUrl: https://xmusings.substack.com/s/x3n0s-learning-journey
+  posts:
+    - title: Side Quest 3
+      description: Building my custom mail merge tool (the prototype behind Merge X)
+      date: 2025-10-06
+      url: https://xmusings.substack.com/p/side-quest-3
+    - title: Side Quest 1
+      description: Self-hosting n8n on GCP
+      date: 2025-07-20
+      url: https://xmusings.substack.com/p/side-quest-1

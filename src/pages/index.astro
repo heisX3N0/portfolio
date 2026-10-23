@@ -1,15 +1,56 @@
 ---
-// Minimal root page for P1 (owner decision 2026-10-23). P2 builds the full page from SPEC 4.0.
+// Root page (SPEC 2.3 and 4.0): a short introduction, one card per published role page, three selected case
+// studies and contact. It does not repeat a role page's proof strip.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Card from '../components/Card.astro';
 import { getSite } from '../lib/site';
+import { getPublishedRoles, getWork, pick, workHref } from '../lib/content';
 
 const site = await getSite();
+const roles = await getPublishedRoles();
+const selected = pick(await getWork(), site.selectedWork, 'site.yaml selectedWork');
 ---
 
 <BaseLayout title={site.name} description={`${site.rootLine} ${site.rootIntro}`}>
+  <Hero
+    name={site.name}
+    positioning={site.rootLine}
+    supporting={site.rootIntro}
+    workHref="#selected-work"
+    cvFile={site.defaultCv}
+    email={site.email}
+    linkedin={site.linkedin}
+    location={site.location}
+    headshot={site.headshot}
+  />
+
   <div class="container">
-    <h1>{site.name}</h1>
-    <p class="lead">{site.rootLine}</p>
-    <p class="prose">{site.rootIntro}</p>
+    <section class="page-section" aria-labelledby="roles-heading">
+      <h2 id="roles-heading">Roles</h2>
+      <ul class="card-grid">
+        {
+          roles.map((r) => (
+            <li>
+              <Card title={r.title} href={`/${r.slug}/`} summary={r.positioning} />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="selected-work" class="page-section" aria-labelledby="selected-work-heading">
+      <h2 id="selected-work-heading">Selected work</h2>
+      <ul class="card-grid">
+        {
+          selected.map((w) => (
+            <li>
+              <Card title={w.title} href={workHref(w.slug)} summary={w.summary} tags={w.tags} figure={w.headlineFigure} />
+            </li>
+          ))
+        }
+      </ul>
+      <p><a href="/work/">All work</a></p>
+    </section>
   </div>
 </BaseLayout>

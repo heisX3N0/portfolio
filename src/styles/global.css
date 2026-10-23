@@ -129,6 +129,24 @@ section + section {
 .muted { color: var(--muted); }
 .small { font-size: var(--step--1); }
 
+/* Page sections below a hero or page heading (root, role and About pages). */
+.page-section {
+  margin-top: var(--space-8);
+  scroll-margin-top: var(--space-4);
+}
+.page-section > h2 {
+  margin-bottom: var(--space-5);
+}
+
+/* A visible marker for content the owner still has to supply (SPEC 5 and 4.5); it goes in the build report too. */
+.todo {
+  margin: var(--space-5) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border: 2px dashed var(--gold);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
 /* Buttons */
 .button {
   display: inline-flex;
@@ -249,6 +267,11 @@ section + section {
   line-height: 1.1;
   color: var(--accent);
   font-variant-numeric: lining-nums tabular-nums;
+}
+/* No figure (Performance Buddy, role cards): the gold rule moves to the title so the grid keeps one rhythm. */
+.card--no-figure h3 {
+  padding-top: var(--space-3);
+  border-top: 3px solid var(--gold);
 }
 .card__summary {
   margin: 0;

@@ -1,0 +1,141 @@
+---
+// About (SPEC 4.4): bio, experience timeline, certifications, education, how this site was built, and the full
+// writing list. Content lives in src/content/ (about.md, experience.yaml, certifications.yaml, writing.yaml).
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Writing from '../components/Writing.astro';
+import { getSite } from '../lib/site';
+import { getOrdered } from '../lib/content';
+
+const site = await getSite();
+const about = await getEntry('about', 'about');
+if (!about) throw new Error('src/content/about.md is missing');
+const { Content: Bio } = await render(about);
+const experience = await getOrdered('experience');
+const certifications = await getOrdered('certifications');
+const writing = await getOrdered('writing');
+const { title, description, howBuilt, repo, spec, education } = about.data;
+---
+
+<BaseLayout title={`${title} | ${site.name}`} description={description}>
+  <div class="container">
+    <h1>{title}</h1>
+    <div class="prose about-bio">
+      <Bio />
+    </div>
+
+    <section class="page-section" aria-labelledby="experience-heading">
+      <h2 id="experience-heading">Experience</h2>
+      <ol class="timeline">
+        {
+          experience.map((e) => (
+            <li class="timeline__item">
+              <h3 class="timeline__role">{e.role}</h3>
+              <p class="timeline__meta">
+                {e.organisation} <span aria-hidden="true">·</span> {e.dates}
+              </p>
+              <ul class="timeline__highlights">
+                {e.highlights.map((h) => (
+                  <li>{h}</li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="page-section" aria-labelledby="certifications-heading">
+      <h2 id="certifications-heading">Certifications</h2>
+      <ul class="plain-list">
+        {
+          certifications.map((c) => (
+            <li>
+              {c.url ? <a href={c.url}>{c.name}</a> : c.name}
+              {c.issuer && <span class="muted">, {c.issuer}</span>}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="page-section" aria-labelledby="education-heading">
+      <h2 id="education-heading">Education</h2>
+      <ul class="plain-list">
+        {education.map((e) => <li>{e}</li>)}
+      </ul>
+    </section>
+
+    <section id="how-this-site-was-built" class="page-section" aria-labelledby="built-heading">
+      <h2 id="built-heading">How this site was built</h2>
+      <div class="prose">
+        <p>{howBuilt}</p>
+        <p>
+          <a href={repo}>The GitHub repository</a> <span aria-hidden="true">·</span> <a href={spec}>SPEC.md</a>
+        </p>
+      </div>
+    </section>
+
+    <section class="page-section" aria-labelledby="writing-heading">
+      <h2 id="writing-heading">Writing</h2>
+      <Writing groups={writing} substack={site.substack} />
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-bio :global(p:first-child) {
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+  .timeline {
+    max-width: var(--measure);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .timeline__item {
+    position: relative;
+    padding: 0 0 var(--space-6) var(--space-5);
+    border-left: 2px solid var(--rule);
+  }
+  .timeline__item:last-child {
+    padding-bottom: 0;
+  }
+  .timeline__item::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 0.45rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  .timeline__role {
+    margin: 0;
+    font-size: var(--step-1);
+  }
+  .timeline__meta {
+    margin: var(--space-1) 0 var(--space-3);
+    color: var(--muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  .timeline__highlights {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+  .timeline__highlights li + li {
+    margin-top: var(--space-2);
+  }
+  .plain-list {
+    max-width: var(--measure);
+    padding: 0;
+    list-style: none;
+  }
+  .plain-list li {
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--rule);
+  }
+</style>
