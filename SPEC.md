@@ -547,7 +547,9 @@ Role page frontmatter schema:
 ```yaml
 slug: string               # e.g. business-analyst (becomes /business-analyst/)
 published: boolean         # unpublished roles are not built, linked or listed
-title: string              # must match that role's CV
+title: string              # must match that role's CV; the hero, OG image and JSON-LD jobTitle always show it
+shortTitle?: string        # P4.5: page and share title ("Name | shortTitle"), max 60, the first part or parts of title
+shareDescription?: string  # P4.5: meta and share description, max 160; without it, supporting is used
 positioning: string
 supporting: string
 proofStrip:                # max 5; numbers must be in Section 6.2 (v3.1: figure first)
@@ -579,6 +581,7 @@ draft: boolean             # drafts are excluded from production builds
 ### 9.3 SEO and sharing
 
 - Unique `<title>` and meta description on every page.
+- `og:title` at most 60 characters on every page (P4.5). A case study shares its title without the name; its `<title>` keeps "| Name".
 - Canonical URLs.
 - Open Graph and Twitter card tags.
 - `robots.txt` allowing all, plus `sitemap.xml`. **Never** emit `noindex` in production.

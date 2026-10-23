@@ -10,6 +10,7 @@ import { getSite } from '../lib/site';
 import { getOrdered, getPublishedRoles, getWork, isPublished, missingCv, pick, workHref } from '../lib/content';
 import type { PublishedRole } from '../lib/schemas';
 import { personJsonLd } from '../lib/seo';
+import { roleShare } from '../lib/share';
 
 export async function getStaticPaths() {
   const roles = await getPublishedRoles();
@@ -31,12 +32,15 @@ const steps = role.howIWork.map((s) => {
 });
 const writing = await getOrdered('writing');
 const cvTodo = missingCv(role.cvFile);
+// The hero and JSON-LD keep the full CV title (SPEC 9.2); search and sharing may use the short one.
 const jsonLd = await personJsonLd(Astro.site!, role.title);
+const share = roleShare(role, site.name);
 ---
 
 <BaseLayout
-  title={`${site.name} | ${role.title}`}
-  description={role.supporting}
+  title={share.title}
+  description={share.description}
+  ogImageAlt={share.imageAlt}
   cvFile={role.cvFile}
   contactLine={role.contactLine}
   ogImage={role.slug}

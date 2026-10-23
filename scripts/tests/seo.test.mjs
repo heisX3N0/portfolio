@@ -75,7 +75,8 @@ test('every page with a canonical URL has Open Graph and Twitter card tags that 
     const title = decode(p.html.match(/<title>([^<]+)<\/title>/)?.[1]);
     const description = meta(p.html, 'description');
     assert.equal(meta(p.html, 'og:url'), `${SITE}${p.path}`, p.path);
-    assert.equal(meta(p.html, 'og:title'), title, p.path);
+    // A case study shares its title without the name (owner decision 2026-10-23); every other page its page title.
+    assert.equal(meta(p.html, 'og:title'), isStudy(p.path) ? title.replace(` | ${site.name}`, '') : title, p.path);
     assert.equal(meta(p.html, 'og:description'), description, p.path);
     assert.equal(meta(p.html, 'og:type'), isStudy(p.path) ? 'article' : 'website', p.path);
     assert.equal(meta(p.html, 'og:site_name'), site.name, p.path);
@@ -85,6 +86,36 @@ test('every page with a canonical URL has Open Graph and Twitter card tags that 
     assert.ok(meta(p.html, 'og:image:alt'), `${p.path}: og:image:alt`);
     assert.equal(meta(p.html, 'twitter:card'), 'summary_large_image', p.path);
   }
+});
+
+// P4.5: search results and link previews cut titles at about 60 characters (opengraph.xyz check, 2026-10-23).
+test('no page shares an og:title over 60 characters', () => {
+  for (const p of pages.filter((p) => p.path !== '/404')) {
+    const ogTitle = meta(p.html, 'og:title');
+    assert.ok(ogTitle.length <= 60, `${p.path}: og:title is ${ogTitle.length} characters ("${ogTitle}")`);
+  }
+});
+
+test('a case study keeps the name in its page title and shares its own title (the h1) as og:title', () => {
+  for (const p of pages.filter((p) => isStudy(p.path))) {
+    const h1 = decode(p.html.match(/<h1[^>]*>([^<]+)<\/h1>/)?.[1]);
+    assert.equal(decode(p.html.match(/<title>([^<]+)<\/title>/)?.[1]), `${h1} | ${site.name}`, p.path);
+    assert.equal(meta(p.html, 'og:title'), h1, p.path);
+  }
+});
+
+test('the BA page: short title and description in search and sharing, the full CV title in the hero, image alt and JSON-LD', () => {
+  const html = page('/business-analyst/')?.html ?? '';
+  const cvTitle = 'Business Analyst | AI & Digital Solutions | CBAP | PSPO II';
+  const short = 'I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build.';
+  assert.equal(decode(html.match(/<title>([^<]+)<\/title>/)?.[1]), `${site.name} | Business Analyst`);
+  assert.equal(meta(html, 'og:title'), `${site.name} | Business Analyst`);
+  assert.equal(meta(html, 'description'), short);
+  assert.equal(meta(html, 'og:description'), short);
+  // Refused: the short title anywhere the CV title must appear.
+  assert.equal(decode(html.match(/<p class="(?:[^"]* )?hero__title(?: [^"]*)?"[^>]*>([^<]+)<\/p>/)?.[1]), cvTitle, 'hero');
+  assert.equal(meta(html, 'og:image:alt'), `${site.name} | ${cvTitle}`, 'og:image:alt');
+  assert.equal(jsonLd(html)[0]?.jobTitle, cvTitle, 'JSON-LD jobTitle');
 });
 
 // JSON-LD (SPEC 9.3): Person on the root page, each role page and About; Article on each case study; nowhere else.

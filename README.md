@@ -24,7 +24,7 @@ Every word on the site lives in `src/content/`. Edit a file, push, and the site 
 | File | What it holds | Shown on |
 | --- | --- | --- |
 | `site.yaml` | Name, root line and introduction, the root page's 3 selected case studies, email, LinkedIn, GitHub, Substack, location, default CV, headshot switch | Every page |
-| `roles/business-analyst.md` | The BA role page: title (must match the CV), positioning and supporting lines, proof strip, "How I work", tools, featured case studies, CV file, contact line | `/business-analyst/` |
+| `roles/business-analyst.md` | The BA role page: title (must match the CV), short title and share description for search results and link previews, positioning and supporting lines, proof strip, "How I work", tools, featured case studies, CV file, contact line | `/business-analyst/` |
 | `roles/project-manager.md`, `roles/product-manager.md` | `published: false` until each role's spec addendum and CV exist | Nowhere |
 | `work/*.md` | One case study each: the card (title, one-line outcome, tags, figure) and the page (metadata, At a glance, the body, artefacts, outcome, build notes, lessons, further reading) | `/work/<slug>/`, `/work/`, role page and `/` cards |
 | `about.md` | The bio (below the `---` lines), "How this site was built", education | `/about/` |
@@ -37,6 +37,7 @@ Rules the content must follow (SPEC.md): every number must be in SPEC 6.2; no em
 - **Order:** lists show in the order they are in the file. Move an entry up or down to reorder it.
 - **YAML text with a colon and a space** (`like: this`) must go in quotes, or on the next line after `>-` as in `about.md`.
 - **Role pages:** a role file with `published: false` is not built, linked or listed. To publish one, fill in every field as in `business-analyst.md` (the build says which are missing) and set `published: true`. Role pages never link to each other.
+- **Search and share text (role pages):** `shortTitle` replaces the CV title in the browser tab, search results and link previews ("Boluwatife Olapade | Business Analyst"). It must be the first part or parts of `title`, split at " | ", and at most 60 characters. `shareDescription` (at most 160 characters) replaces `supporting` in the same places. Both are optional: leave them out and the page uses `title` and `supporting`. The hero, OG image and JSON-LD always show the full `title`.
 - **"How I work" examples:** a step's `example` is a case study file name (without `.md`). Its "Example:" line shows only while that case study is published.
 - **Case studies:** `draft: true` keeps one out of the live site. `order` sets the order on `/work/` and the previous and next links. See "Add a case study" below.
 
