@@ -2,16 +2,16 @@
 // Case study page (SPEC 4.3), one per file in src/content/work/ (drafts left out of production builds). Every case
 // study uses this template, so a reader can scan any of them the same way: header, At a glance, the body (Context,
 // The problem, What I did), artefacts, outcome, lessons, and previous and next. Adding one is a content task.
-import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Figure from '../../components/Figure.astro';
 import ArtefactTable from '../../components/ArtefactTable.astro';
 import Linked from '../../components/Linked.astro';
 import { getSite } from '../../lib/site';
-import { isPublished, workHref, type Work } from '../../lib/content';
+import { getPublishedWorkEntries, workHref, type Work } from '../../lib/content';
 
 export async function getStaticPaths() {
-  const entries = (await getCollection('work')).filter((e) => isPublished(e.data)).sort((a, b) => a.data.order - b.data.order);
+  const entries = await getPublishedWorkEntries();
   return entries.map((entry, i) => ({
     params: { slug: entry.data.slug },
     props: { entry, prev: entries[i - 1]?.data, next: entries[i + 1]?.data },

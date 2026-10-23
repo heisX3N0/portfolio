@@ -1,7 +1,7 @@
 ---
 // A table artefact (SPEC 7): a real table with a caption and th scope, never inside a role="img" wrapper.
 // Tables with four or more columns keep a readable width and scroll inside their wrapper on a phone, never the page;
-// the wrapper is a named, focusable region so keyboard users can scroll it. The <caption> would scroll out of view
+// only those wrappers are named, focusable regions, so keyboard users can scroll them. The <caption> would scroll out of view
 // with the table, so sighted readers get the same words above the scroll area and screen readers get the caption.
 import type { Artefact } from '../lib/schemas';
 
@@ -18,7 +18,7 @@ const wide = columns.length >= 4;
     {label && <span class="figure__label">{label}. </span>}{caption}
   </p>
   {wide && <p class="artefact-table__hint" aria-hidden="true">Scroll the table sideways to see every column.</p>}
-  <div class="table-wrap" role="region" aria-labelledby={`${id}-caption`} tabindex="0">
+  <div class="table-wrap" role={wide ? 'region' : undefined} aria-labelledby={wide ? `${id}-caption` : undefined} tabindex={wide ? 0 : undefined}>
     <table class:list={[{ 'table--wide': wide }]}>
       <caption id={`${id}-caption`} class="visually-hidden">
         {label && `${label}. `}{caption}

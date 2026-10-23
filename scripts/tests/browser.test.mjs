@@ -161,7 +161,7 @@ test('diagram text stays inside its box at 360px and 1366px', async () => {
       await browser.open(origin + path, { width, height: 800 });
       const outside = await browser.evaluate(`(() => {
         const out = [];
-        for (const g of document.querySelectorAll('svg .d-box')) {
+        for (const g of document.querySelectorAll('svg .d-box, svg .d-lanehead')) {
           if (!g.getClientRects().length) continue;
           const box = g.querySelector('rect').getBoundingClientRect();
           for (const t of g.querySelectorAll('text')) {

@@ -20,9 +20,13 @@ export async function getWork(): Promise<Map<string, Work>> {
 /** Drafts are left out of production builds (SPEC 9.2). */
 export const isPublished = (w: Work) => !(import.meta.env.PROD && w.draft);
 
-/** Published case studies in display order (`order`), for /work/ and each case study's previous and next links. */
+/** Published case study entries in display order (`order`): /work/ and each case study's previous and next links share it. */
+export async function getPublishedWorkEntries(): Promise<CollectionEntry<'work'>[]> {
+  return (await getCollection('work')).filter((e) => isPublished(e.data)).sort((a, b) => a.data.order - b.data.order);
+}
+
 export async function getPublishedWork(): Promise<Work[]> {
-  return [...(await getWork()).values()].filter(isPublished).sort((a, b) => a.order - b.order);
+  return (await getPublishedWorkEntries()).map((e) => e.data);
 }
 
 /** The published case studies for these slugs, in that order. A slug with no case study at all fails the build. */

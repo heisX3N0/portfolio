@@ -254,11 +254,9 @@ test('Performance Buddy is never described as live, launched or piloted, on any 
   // The previous and next links name other case studies ("From CBN circular to live limits"), so they don't count.
   const own = article(study('performance-buddy-access-control')).replace(/<nav\b[\s\S]*?<\/nav>/g, ' ');
   assert.deepEqual(findLiveClaims(visibleText(own)), []);
-  for (const p of pages) {
-    for (const card of cards(p.html)) {
-      if (card.includes('/work/performance-buddy-access-control/')) assert.deepEqual(findLiveClaims(visibleText(card)), [], p.path);
-    }
-  }
+  const buddyCards = pages.flatMap((p) => cards(p.html).filter((c) => c.includes('/work/performance-buddy-access-control/')).map((c) => ({ p, c })));
+  assert.ok(buddyCards.length >= 2, 'Performance Buddy cards not found on /work/ and the BA page');
+  for (const { p, c } of buddyCards) assert.deepEqual(findLiveClaims(visibleText(c)), [], p.path);
 });
 
 test('projected aggregator figures are labelled as projected on every page', () => {
@@ -364,11 +362,12 @@ test('/work/ lists every case study in order, with All, Banking and AI products 
 });
 
 test('every case study card carries an artefact thumbnail', () => {
-  for (const p of pages.filter((x) => x.path !== '/styleguide/')) {
-    for (const card of cards(p.html)) {
-      if (/href="\/work\//.test(card)) assert.match(card, /class="card__thumb"[\s\S]*<svg/, p.path);
-    }
-  }
+  const workCards = pages
+    .filter((x) => x.path !== '/styleguide/')
+    .flatMap((p) => cards(p.html).filter((c) => /href="\/work\//.test(c)).map((c) => ({ p, c })));
+  // 3 on the root page, 6 on the BA page, 6 on /work/.
+  assert.ok(workCards.length >= 15, `${workCards.length} case study cards found`);
+  for (const { p, c } of workCards) assert.match(c, /class="card__thumb"[\s\S]*<svg/, p.path);
 });
 
 test('no case study page is pending any more, and all are in the sitemap', () => {

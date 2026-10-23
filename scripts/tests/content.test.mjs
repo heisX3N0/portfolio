@@ -174,6 +174,13 @@ test('a further reading link that is not a URL fails', () => {
   assert.equal(ok({ furtherReading: [{ title: 't', url: 'https://xmusings.substack.com/p/x' }] }), true);
 });
 
+test('a link URL keeps its balanced parentheses', () => {
+  assert.deepEqual(linkParts('[wiki](https://en.wikipedia.org/wiki/Agent_banking_(Nigeria)).'), [
+    { text: 'wiki', href: 'https://en.wikipedia.org/wiki/Agent_banking_(Nigeria)' },
+    { text: '.' },
+  ]);
+});
+
 test('only https links in a content field become links; other brackets stay text', () => {
   assert.deepEqual(linkParts('See [x](javascript:alert(1)) and [y](http://a.test).'), [{ text: 'See [x](javascript:alert(1)) and [y](http://a.test).' }]);
   assert.deepEqual(linkParts('Live at [the demo](https://aimery.versionphi.com), free.'), [
