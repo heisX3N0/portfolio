@@ -2,6 +2,26 @@
 
 Finished backlog items, newest first, with what shipped, owner decisions (dated) and deviations.
 
+- [x] **P4 SEO, analytics and hardening** (M). Merged 2026-10-23 in `9b6444b` ([PR #6](https://github.com/heisX3N0/portfolio/pull/6); commits `7edac54`, `a067a75`).
+  - **Shipped:**
+    - Open Graph and Twitter card tags on every page with a canonical URL (none on 404). Person JSON-LD on the root page, About and each role page (`jobTitle` on role pages only, the CV title); Article JSON-LD on each case study. `robots.txt` generated from the site URL.
+    - OG images drawn at build (satori, WebAssembly resvg): `/og/business-analyst.png` and `/og/site.png`. Unpublished roles get none.
+    - `public/_headers`: CSP (self, the theme script's hash, Cloudflare Web Analytics; no `'unsafe-inline'`), HSTS, nosniff, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`. The CV PDFs drop the CSP. Stylesheets are never inlined; no element has a style attribute.
+    - Cloudflare Web Analytics beacon on every page. The browser test and Lighthouse block its report URL, so CI visits never count.
+    - Figures check (SPEC 9.4): visible text, meta descriptions, `og:image:alt` and JSON-LD text against an allow-list parsed from the SPEC 6.2 table.
+    - The browser test serves every page with the real CSP and fails on any violation; it caught the theme script's hash being taken over Windows CRLF bytes. Lighthouse now also runs on the BA page.
+    - 140 tests (24 new). CI green on `a067a75`. Lighthouse 100 in every category on 6 pages, mobile and desktop (local, one run each). The production deploy of `9b6444b` succeeded: I checked all six security headers and the CSP hash, robots.txt, both OG images (41,542 and 35,794 bytes as built on Linux; 37,332 and 30,830 locally on Windows), the CV rule (`noindex`, no CSP), and in a browser the BA page on `boluwatife-portfolio.pages.dev`: theme script ran, beacon sent its report, no console errors.
+  - **Owner decisions (2026-10-23):**
+    - Analytics as a snippet in code, token in `site.yaml`. The Web Analytics site was created for `boluwatife-portfolio.pages.dev`; check the custom domain reports after P5.
+    - OG images generated at build.
+    - One site-wide OG image for every page that is not a role page.
+  - **Deviations:**
+    - 4 new packages, not the 2 first described: the woff fonts come from `@fontsource/inter` and `@fontsource/source-serif-4`.
+    - Figures check exemptions beyond SPEC 9.4: sequence labels, zero-padded identifiers, digits after a letter. Years are exempt only in a year context.
+    - Role slugs `og` and `site` are reserved.
+    - The P4 item had no Tests or Cost line when picked up; the PR wrote both (negative cases first).
+    - `/code-review` (high) found 10 issues: 9 fixed before the PR, the 10th (beacon untested under the CSP) fixed once the token arrived.
+
 - [x] **P3 Case studies** (L). Merged 2026-10-23 in `266b19f` ([PR #5](https://github.com/heisX3N0/portfolio/pull/5); commits `a3e5f4c`, `dec15d1`, `9eb89fb`).
   - **Shipped:**
     - Six case study pages from one template (SPEC 4.3), written only from the SPEC 5 fact sheets: header and metadata, At a glance, Context, The problem, What I did, Artefacts, Outcome, build notes, What I learned, further reading, previous and next.
