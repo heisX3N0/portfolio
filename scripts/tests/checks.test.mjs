@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { findBrokenLinks, findPhoneNumbers, findDashes, sitemapUrls } from '../lib/checks.mjs';
+import { findBrokenLinks, findPhoneNumbers, findDashes, findMissingFragments, sitemapUrls } from '../lib/checks.mjs';
 
 function fixture(files) {
   const dir = mkdtempSync(join(tmpdir(), 'portfolio-check-'));
@@ -60,6 +60,11 @@ test('dash check catches named entities and SVG text', () => {
   assert.equal(findDashes('<p>a &mdash; b</p>').length, 1);
   assert.equal(findDashes('<p>2024&ndash;25</p>').length, 1);
   assert.equal(findDashes('<svg><text x="0" y="0">Step 1 – Discover</text></svg>').length, 1);
+});
+
+test('fragment check fails on a same-page link with no target', () => {
+  assert.deepEqual(findMissingFragments('<a href="#contact">Contact</a><main id="main"></main>'), ['#contact']);
+  assert.deepEqual(findMissingFragments('<a href="#contact">x</a><section id="contact"></section><a href="#">top</a>'), []);
 });
 
 test('sitemap parser reads every loc', () => {

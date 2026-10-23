@@ -1,6 +1,9 @@
 ---
+// Global header on the navy band (SPEC 3, direction B). One row from 360px: the name shrinks to a "BO" monogram on mobile.
+import Icon from './Icon.astro';
+
 interface Props {
-  site: { name: string; email: string };
+  site: { name: string };
   cvFile: string;
 }
 
@@ -11,15 +14,21 @@ const current = (href: string) => (path.startsWith(href) ? 'page' : undefined);
 
 <header class="site-header">
   <div class="container site-header__inner">
-    <a class="site-header__name" href="/" aria-current={path === '/' ? 'page' : undefined}>{site.name}</a>
+    <a class="site-header__brand" href="/" aria-current={path === '/' ? 'page' : undefined}>
+      <span class="site-header__monogram" aria-hidden="true">BO</span>
+      <span class="site-header__name visually-hidden">{site.name}</span>
+    </a>
     <nav aria-label="Main">
       <ul class="site-nav">
         <li><a href="/work/" aria-current={current('/work/')}>Work</a></li>
         <li><a href="/about/" aria-current={current('/about/')}>About</a></li>
-        <li><a href={cvFile}>CV</a></li>
-        <li><a href={`mailto:${site.email}`}>Contact</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a class="site-nav__cv" href={cvFile}>CV<span class="site-nav__pdf visually-hidden"> (PDF)</span></a></li>
         <li>
-          <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" hidden>Dark theme</button>
+          <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to dark theme" hidden>
+            <Icon name="moon" class="theme-toggle__moon" />
+            <Icon name="sun" class="theme-toggle__sun" />
+          </button>
         </li>
       </ul>
     </nav>
@@ -28,55 +37,134 @@ const current = (href: string) => (path.startsWith(href) ? 'page' : undefined);
 
 <style>
   .site-header {
-    border-bottom: 1px solid var(--border);
+    background: var(--hero-bg);
+    color: var(--on-hero);
+    border-bottom: 1px solid var(--hero-edge);
+  }
+  /* When a hero follows, the band carries on: a thin rule inside the band instead of the edge. */
+  :global(body:has(main > .hero:first-child)) .site-header {
+    border-bottom: 0;
+  }
+  :global(body:has(main > .hero:first-child)) .site-header__inner {
+    border-bottom: 1px solid var(--hero-rule);
   }
   .site-header__inner {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-2) var(--space-5);
-    padding-block: var(--space-4);
+    gap: var(--space-3);
+    min-height: 3.5rem;
   }
-  .site-header__name {
-    font-family: var(--font-serif);
-    font-size: var(--step-1);
-    font-weight: 600;
-    color: var(--text);
+  .site-header :focus-visible {
+    outline-color: var(--on-hero-gold);
+  }
+  .site-header__brand {
+    display: flex;
+    align-items: center;
+    color: var(--on-hero);
     text-decoration: none;
+  }
+  .site-header__monogram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border: 1.5px solid var(--on-hero-gold);
+    border-radius: var(--radius);
+    color: var(--on-hero-gold);
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
   }
   .site-nav {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-1) var(--space-4);
+    gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
+    font-size: 0.875rem;
   }
   .site-nav a {
     display: inline-block;
-    padding-block: var(--space-2);
-    color: var(--text);
+    padding-block: var(--space-3);
+    color: var(--on-hero);
     text-decoration: none;
   }
   .site-nav a:hover,
   .site-nav a[aria-current='page'] {
     text-decoration: underline;
-    text-underline-offset: 0.3em;
+    text-decoration-color: var(--on-hero-gold);
+    text-underline-offset: 0.35em;
+  }
+  .site-nav .site-nav__cv {
+    color: var(--on-hero-gold);
+    font-weight: 600;
   }
   .theme-toggle {
-    min-height: 44px;
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--hero-rule);
     border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--text);
-    font: inherit;
-    font-size: var(--step--1);
+    background: transparent;
+    color: var(--on-hero-gold);
     cursor: pointer;
   }
-  .theme-toggle[aria-pressed='true'] {
-    border-color: var(--accent);
+  .theme-toggle[hidden] {
+    display: none;
+  }
+  .theme-toggle:hover {
+    border-color: var(--on-hero-gold);
+  }
+  /* The icon shows what a click does: a moon in light mode, a sun in dark mode. */
+  .theme-toggle :global(.theme-toggle__sun),
+  :global([data-theme='dark']) .theme-toggle :global(.theme-toggle__moon) {
+    display: none;
+  }
+  :global([data-theme='dark']) .theme-toggle :global(.theme-toggle__sun) {
+    display: block;
+  }
+
+  @media (min-width: 48rem) {
+    .site-header__inner {
+      min-height: 4.5rem;
+    }
+    .site-header__monogram {
+      display: none;
+    }
+    /* Mobile hides the full name and "(PDF)" visually (they stay in the accessible names); desktop shows them. */
+    .site-header__name,
+    .site-nav__pdf {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+    .site-header__name {
+      font-family: var(--font-serif);
+      font-size: 1.1875rem;
+      font-weight: 600;
+    }
+    .site-nav {
+      gap: var(--space-5);
+      font-size: 0.9375rem;
+    }
+    .site-nav .site-nav__cv {
+      padding: 0.5625rem 0.9375rem;
+      border-radius: var(--radius);
+      background: var(--on-hero-gold);
+      color: var(--hero-bg);
+    }
+    .site-nav .site-nav__cv:hover {
+      text-decoration-color: var(--hero-bg);
+    }
   }
 </style>

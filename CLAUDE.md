@@ -21,6 +21,14 @@ Static Astro site built from `SPEC.md`. The spec is the source of truth for scop
 - Role pages never link to each other. Unpublished roles are not built, linked or listed. No "coming soon".
 - Style-guide sample text uses approved copy from the spec only, so the figures check never trips on made-up numbers.
 
+## Design rules (direction B, P1.5; SPEC 8 v3.1)
+
+- `/styleguide/` is the living reference: build pages from its parts (`Hero`, `ProofStrip`, `Card`, `ContactSection`), not new one-off styles.
+- Colours come from `tokens.css` only. Every foreground and background pair goes in `pairs` in `src/lib/palette.ts`; the palette test fails any pair under 4.5:1 (3:1 for UI parts) in either theme.
+- Ochre gold (`--gold`, `--on-hero-gold`) is for the title line, the one primary action on the navy band, rules, highlights and tags. Never body text or large fills.
+- The header and hero band are the same navy (`--hero-bg`) in both themes. In dark mode the band keeps its shape through the 1px `--hero-edge`, not a lighter band (a lighter navy is only 1.25:1 against the dark page).
+- The browser test (`scripts/tests/browser.test.mjs`) needs Chrome or Edge; set `CHROME_PATH` if neither is in a standard place. It checks the first screen at 1366x768 and 390x844, the one-row header at 360px, no sideways scroll, the toggle's name, `#contact` and the 200 KB budget.
+
 ## Gotchas
 
 - On the owner's Windows machine, Application Control blocks Astro's native compiler (`astro.win32-x64-msvc.node`). Don't change that setting. Run locally with the official WebAssembly build instead: install `@astrojs/compiler-binding-wasm32-wasi` (same version as `@astrojs/compiler-binding`) with npm in a folder outside the repo, then set `NAPI_RS_FORCE_WASI=1` and `NODE_PATH=<that folder>/node_modules` for `check`, `build` and `dev`. CI and Cloudflare use the native binary.

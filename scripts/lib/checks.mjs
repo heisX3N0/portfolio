@@ -89,3 +89,11 @@ export function findDashes(html) {
 export function sitemapUrls(xml) {
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 }
+
+// Same-page links (href="#id") whose id is not on the page. A bare "#" is ignored.
+export function findMissingFragments(html) {
+  const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
+  const missing = new Set();
+  for (const m of html.matchAll(/\shref="#([^"]+)"/g)) if (!ids.has(m[1])) missing.add(`#${m[1]}`);
+  return [...missing];
+}

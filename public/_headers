@@ -5,6 +5,6 @@
   Content-Disposition: inline
   X-Robots-Tag: noindex
 
-# Fonts never change name without changing content.
+# Fonts are cached for a year: never change a font file's content without changing its name.
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable

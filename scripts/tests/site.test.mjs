@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { listHtmlFiles, pagePath, findBrokenLinks, findPhoneNumbers, findDashes, sitemapUrls } from '../lib/checks.mjs';
+import { listHtmlFiles, pagePath, findBrokenLinks, findPhoneNumbers, findDashes, findMissingFragments, sitemapUrls } from '../lib/checks.mjs';
 
 const dist = fileURLToPath(new URL('../../dist/', import.meta.url));
 const built = existsSync(join(dist, 'index.html'));
@@ -83,4 +83,16 @@ test('404 links to Home, Work and the BA role page', () => {
 
 test('the theme toggle is hidden until the script runs', () => {
   for (const p of pages) assert.match(p.html, /<button[^>]*data-theme-toggle[^>]*hidden/, p.path);
+});
+
+test('every same-page link has a target, and Contact jumps to #contact', () => {
+  for (const p of pages) {
+    assert.deepEqual(findMissingFragments(p.html), [], p.path);
+    assert.match(p.html, /<a[^>]*href="#contact"[^>]*>Contact<\/a>/, `${p.path}: header Contact link`);
+    assert.doesNotMatch(p.html, /<nav[\s\S]*?href="mailto:[\s\S]*?<\/nav>/, `${p.path}: header still opens a mail app`);
+  }
+});
+
+test('the theme toggle has an accessible name in the HTML before the script runs', () => {
+  for (const p of pages) assert.match(p.html, /<button[^>]*data-theme-toggle[^>]*aria-label="Switch to (dark|light) theme"/, p.path);
 });

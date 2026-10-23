@@ -2,7 +2,8 @@
 
 **Owner:** Boluwatife Olapade
 **Builder:** Claude Code
-**Status:** v3, approved by the owner, ready to build (v2 added role pages, the domain, the Merge X case study and the depth rule; v3 adds the hero copy approval, GitHub, the Substack writing list and the DNS setup)
+**Status:** v3.1, approved by the owner (v2 added role pages, the domain, the Merge X case study and the depth rule; v3 added the hero copy approval, GitHub, the Substack writing list and the DNS setup)
+**Changelog:** v3.1 (23 October 2026, backlog item P1.5 Visual identity, owner decisions of the same date): the header's Contact jumps to a contact section on every page (Section 3); the proof strip puts the figure first, and on mobile the supporting line may sit below it (4.1); "How I work" steps may link to one case study each (4.1, 9.2); ochre gold replaces the unnamed warm accent, with a navy hero band that keeps its shape in dark mode (8).
 **Domain:** `boluwatife.olapade.site` (owned)
 **Last updated:** 23 October 2026
 
@@ -111,7 +112,7 @@ Showing three roles on one site can read as a lack of focus. To avoid this:
 - A role page whose content file has `published: false` must not be built, linked or listed in the sitemap.
 - The root page lists only published role pages. **Never show "coming soon" placeholders.**
 
-Global header: name (links to `/`) · Work · About · CV · Contact (mailto). The CV link opens the CV for the role page the visitor is on; elsewhere it opens the BA CV until other roles are live.
+Global header: name (links to `/`; a "BO" monogram on mobile) · Work · About · Contact · CV · theme toggle, on one row from 360px wide. Contact jumps to the contact section (`#contact`) that ends every page: the role's contact line where there is one, the email address as text, LinkedIn and Download CV (v3.1; it no longer opens a mail app). The CV link opens the CV for the role page the visitor is on; elsewhere it opens the BA CV until other roles are live.
 Global footer: email · LinkedIn · "Last updated <month year>" · small "Built from a spec with Claude Code" credit linking to `/about/#how-this-site-was-built`.
 
 ---
@@ -138,13 +139,14 @@ In order:
    - Primary actions: "View my work" (anchors to the case studies) and "Download CV" (`/cv/business-analyst.pdf`).
    - Secondary actions: Email and LinkedIn as icon links with visible text labels on desktop.
    - Headshot slot (Section 8, off by default). No stock imagery.
+   - On mobile the supporting line may sit below the proof strip, so the name, the proof strip and Download CV fit the first screen (Section 1.4; v3.1).
 
-2. **Proof strip.** Five short, factual items in a single row on desktop and a 2-column grid on mobile:
-   - CBAP and PSPO II certified
-   - First bank to comply with a new CBN limits circular, in 4 weeks
-   - ₦268.36M deposits mobilised in 6 months (Beta 2.0)
-   - 10,000+ app downloads (GPT Investor)
-   - Prompt-injection tested AI product, live (Aimery)
+2. **Proof strip.** Five short, factual items, each a figure followed by a short description. On desktop a single row of five, overlapping the bottom of the hero band; on mobile a 5-row list with the figure on the left (v3.1):
+   - 4 weeks: First bank to comply with a new CBN limits circular
+   - ₦268.36M: Deposits mobilised in 6 months (Beta 2.0)
+   - 10,000+: App downloads (GPT Investor)
+   - Live: Prompt-injection tested AI product (Aimery)
+   - CBAP: and PSPO II certified
 
 3. **Selected work.** Cards for the case studies tagged for this role (Section 5), in the order set in the role's content file. Each card shows:
    - Title
@@ -160,6 +162,8 @@ In order:
    3. Specify: solution requirements documents, user stories, acceptance criteria, Definition of Ready
    4. Deliver: backlog refinement, sprint planning, vendor and dev coordination
    5. Validate: SIT/UAT, sign-off, production readiness, monitoring
+
+   The flow is HTML and CSS, not a diagram, so it never scrolls sideways. Each step may link to one case study that shows it, as one small "Example:" line, shown only when that case study is published (v3.1).
 
    Below it, one line: "Tools: Jira, Confluence, Azure DevOps, Linear, Draw.io, Lucidchart, Miro, Mixpanel, SQL, Gemini, Claude."
 
@@ -469,9 +473,10 @@ Any other number needs the owner's written approval first. Where the old Gamma p
 - **Feel:** editorial and calm, like a well-typeset report rather than a startup landing page. Generous whitespace, strong typographic hierarchy, few colours.
 - **Colour:**
   - Deep navy accent `#1F3A5F` (matches the CV) on an off-white background.
-  - One warm secondary accent, used sparingly for tags and highlights.
+  - The header and the role page hero sit on a deeper navy band (`#172C49`) with off-white text (v3.1).
+  - One warm secondary accent: ochre gold (v3.1; `#7A5300` as text on light backgrounds, `#E8C26A` on navy and in dark mode). Gold is for the title line, the primary action, rules, highlights and tags; never body text or large fills.
   - Text contrast at least 4.5:1, and 3:1 for large text and UI elements.
-- **Dark mode:** follow `prefers-color-scheme`, with a manual toggle. Store the choice in `localStorage` wrapped in try/catch.
+- **Dark mode:** follow `prefers-color-scheme`, with a manual toggle. Store the choice in `localStorage` wrapped in try/catch. The toggle is an icon button whose accessible name says what it does ("Switch to dark theme"). The hero band stays the same navy on the dark page, with a 1px lighter bottom edge (`#4A6890`, at least 3:1 against the page) so it keeps its shape (v3.1).
 - **Type:**
   - A readable serif for headings and a clean sans for body text, or one variable sans with strong weight contrast.
   - Self-host fonts with `font-display: swap`, at most 2 families.
@@ -545,9 +550,10 @@ published: boolean         # unpublished roles are not built, linked or listed
 title: string              # must match that role's CV
 positioning: string
 supporting: string
-proofStrip: string[]       # max 5; numbers must be in Section 6.2
-howIWork:                  # 4-6 steps
-  - { step: string, line: string, artefacts: string }
+proofStrip:                # max 5; numbers must be in Section 6.2 (v3.1: figure first)
+  - { figure: string, text: string }
+howIWork:                  # 4-6 steps; example is an optional case study slug (v3.1)
+  - { step: string, line: string, artefacts: string, example?: string }
 tools: string
 featuredWork: string[]     # case study slugs, in display order
 cvFile: string             # e.g. /cv/business-analyst.pdf

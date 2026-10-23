@@ -3,6 +3,7 @@ import '../styles/global.css';
 import themeScript from '../scripts/theme.js?raw';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import ContactSection from '../components/ContactSection.astro';
 import { getSite } from '../lib/site';
 
 interface Props {
@@ -10,12 +11,14 @@ interface Props {
   description: string;
   /** The CV the header links to. Role pages pass their own; elsewhere the default (SPEC 3). */
   cvFile?: string;
+  /** The contact section's sentence. Role pages pass their own (SPEC 4.1 item 6); elsewhere there is none. */
+  contactLine?: string;
   /** False on pages with no real URL of their own (the 404 page). */
   canonical?: boolean;
 }
 
 const site = await getSite();
-const { title, description, cvFile = site.defaultCv, canonical: hasCanonical = true } = Astro.props;
+const { title, description, cvFile = site.defaultCv, contactLine, canonical: hasCanonical = true } = Astro.props;
 const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undefined;
 ---
 
@@ -30,6 +33,8 @@ const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undef
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- The serif sets the h1, the largest text above the fold. -->
+    <link rel="preload" href="/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="color-scheme" content="light dark" />
     <script is:inline set:html={themeScript} />
   </head>
@@ -38,6 +43,7 @@ const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undef
     <Header site={site} cvFile={cvFile} />
     <main id="main" tabindex="-1">
       <slot />
+      <ContactSection email={site.email} linkedin={site.linkedin} cvFile={cvFile} contactLine={contactLine} />
     </main>
     <Footer site={site} />
   </body>
