@@ -2,6 +2,18 @@
 
 Finished backlog items, newest first, with what shipped, owner decisions (dated) and deviations.
 
+- [x] **P4.5 Shorter search and share titles** (S). Merged 2026-10-23 in `6e3b134` ([PR #8](https://github.com/heisX3N0/portfolio/pull/8); commits `e8fa86f`, `2abff43`).
+  - **Shipped:**
+    - Optional `shortTitle` (max 60, the first part or parts of the CV title) and `shareDescription` (max 160) on role files, used for `<title>`, `og:title`, `description` and `og:description` (`src/lib/share.ts`). Without them a role page shares what it did before.
+    - BA page: "Boluwatife Olapade | Business Analyst" (37 characters, was 79) and a 117-character description (was 234). The hero, OG image, `og:image:alt` and JSON-LD `jobTitle` keep the full CV title.
+    - Case studies share their title without "| Boluwatife Olapade" in `og:title` (up to 59 characters, was up to 80); `<title>` keeps it.
+    - A test fails any page with an `og:title` over 60 characters. SPEC 9.2 and 9.3, the README content notes and CLAUDE.md updated.
+    - 147 tests, 9 of them new. CI green on `2abff43`. HTML 326 bytes smaller on the BA page and 21 bytes smaller per case study (measured on disk, one build of each).
+  - **Owner decisions (2026-10-23):** a shorter page and share title is fine as long as the hero keeps the full CV title; the share description is the first clause of the supporting paragraph; case studies drop the name from `og:title` only; built before P5.
+  - **Deviations:**
+    - `/code-review` (medium) found 5 issues: 2 fixed (an unreachable image alt fallback, a brittle hero test regex), 3 left as listed in the PR. The main one: the 60-character `shortTitle` limit allows an `og:title` of up to 81 characters, so the built-page test, not the schema, enforces the 60-character share title.
+    - GitHub auto-merge is not allowed on this repository, so the merge was done by hand once both checks passed.
+
 - [x] **P4 SEO, analytics and hardening** (M). Merged 2026-10-23 in `9b6444b` ([PR #6](https://github.com/heisX3N0/portfolio/pull/6); commits `7edac54`, `a067a75`).
   - **Shipped:**
     - Open Graph and Twitter card tags on every page with a canonical URL (none on 404). Person JSON-LD on the root page, About and each role page (`jobTitle` on role pages only, the CV title); Article JSON-LD on each case study. `robots.txt` generated from the site URL.
