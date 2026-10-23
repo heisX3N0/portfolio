@@ -17,7 +17,7 @@ A typical visit: a recruiter opens a role page, maybe a case study and the CV. E
 | Cloudflare Pages files | 20,000 per site, 25 MiB per file (same source) | 34 files in `dist/` after P4, counted (P4 added 2 OG images, `robots.txt` and page CSS files that were inlined before) | Not near |
 | `_headers` rules | 100 rules, 2,000 characters per header (same source) | 3 rules after P4, counted (`/*`, `/cv/*`, `/fonts/*`); the longest header is the CSP at 311 characters, counted | Not near |
 | GitHub Actions minutes | Free and uncounted for public repos on standard runners | About 5 to 8 minutes per CI run (estimate: install, build with 2 OG images, tests including the headless Chrome layout and CSP checks, link check, Lighthouse on 6 pages at two sizes since P4; not measured yet. Locally the Lighthouse step took about 1 minute for 12 runs, one run) | Not a wall while the repo is public |
-| Cloudflare Web Analytics (P4, once the owner sets `analyticsToken`) | Free; cookieless | 1 script and 1 beacon request per page view (from Cloudflare's docs; not measured: no token yet) | Not a wall |
+| Cloudflare Web Analytics (P4) | Free; cookieless | 1 script (10,264 bytes gzip, measured with curl, one fetch; cached for a day) and 1 report request to `cloudflareinsights.com/cdn-cgi/rum` per page view (seen in headless Chrome, P4) | Not a wall |
 
 **In user terms:** no free limit caps visitors. A static Pages site has no listed request or bandwidth limit, so the number of users supported is not limited by any free quota. The only wall is the owner's own: Pages builds (500 a month).
 
@@ -25,7 +25,7 @@ A typical visit: a recruiter opens a role page, maybe a case study and the CV. E
 
 | Action | Pages builds | Actions minutes | Bytes to visitor |
 | --- | --- | --- | --- |
-| Visitor opens a page | 0 | 0 | About 107 to 117 KB on a first visit (measured, gzip, one load of each of the 12 pages at 390x844, P4, without the analytics script, which has no token yet); the browser test fails any page over 200 KB (SPEC 9.4) |
+| Visitor opens a page | 0 | 0 | About 107 to 117 KB of the site's own files on a first visit (measured, gzip, one load of each of the 12 pages at 390x844, P4), plus the 10,264-byte analytics script, so about 117 to 127 KB in all (the script's size is measured separately: cross-origin timing hides it from the browser test); the browser test fails any page over 200 KB (SPEC 9.4) |
 | Visitor opens the CV | 0 | 0 | 60,495 bytes (the PDF; outside the 200 KB page budget, SPEC 9.4) |
 | Owner pushes to a PR branch | 1 | 1 CI run (0 minutes counted: public repo) | 0 |
 | Owner merges to `main` | 1 | 0 (CI runs on PRs only) | 0 |
@@ -65,7 +65,7 @@ Nothing here is expected to need paid capacity. If builds ever ran out, the firs
 
 - Pages builds: Cloudflare dashboard, Workers and Pages, the project, Deployments (count per month). Works on a phone.
 - Actions minutes: not counted while the repo is public (GitHub, Settings, Billing and plans, Usage, to confirm).
-- Analytics: once `analyticsToken` is set, Cloudflare dashboard, Analytics and Logs, Web Analytics (visits and page views, no cookies).
+- Analytics: Cloudflare dashboard, Analytics and Logs, Web Analytics (visits and page views, no cookies). Filter by host: preview deploys on `*.pages.dev` report too. Test and Lighthouse visits never do: both block the report URL.
 - Page weight: `pnpm test` (the browser test sums each page's transfer and fails over 200 KB); Lighthouse reports in CI give the same per page.
 
 ## PR checklist (infrastructure cost)

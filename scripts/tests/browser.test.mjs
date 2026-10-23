@@ -41,6 +41,20 @@ test('the CSP blocks nothing on any page', async () => {
   }
 });
 
+// With a token in site.yaml, the analytics script loads under the CSP (its report to Cloudflare is blocked in tests).
+test('the analytics script loads under the CSP when a token is set', async (t) => {
+  const html = readFileSync(join(dist, 'index.html'), 'utf8');
+  if (!html.includes('static.cloudflareinsights.com/beacon.min.js')) return t.skip('no analyticsToken in site.yaml');
+  const token = JSON.parse(html.match(/data-cf-beacon="([^"]+)"/)[1].replace(/&quot;/g, '"')).token;
+  await browser.open(`${origin}/`, { width: 1366, height: 768 });
+  // The script ran: it records its settings on window. (Cross-origin timing hides the response status.)
+  assert.equal(await browser.evaluate('window.__cfBeacon?.token ?? null'), token, 'beacon.min.js did not run');
+  assert.deepEqual(await browser.evaluate('window.__csp'), []);
+  // And the report is blocked, so test visits never reach the dashboard.
+  const report = await browser.evaluate(`fetch('https://cloudflareinsights.com/cdn-cgi/rum', { mode: 'no-cors' }).then(() => 'sent', () => 'blocked')`);
+  assert.equal(report, 'blocked');
+});
+
 after(async () => {
   await browser?.close();
   server?.close();

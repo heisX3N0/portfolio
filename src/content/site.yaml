@@ -26,4 +26,4 @@ site:
     - Babcock University
   # Cloudflare Web Analytics token (SPEC 9.1): the "token" value in the snippet from Cloudflare, Analytics and Logs,
   # Web Analytics. Leave empty and no analytics script is added.
-  analyticsToken: ""
+  analyticsToken: f4e4e98341f84bc8b3959f0ba1d9310c

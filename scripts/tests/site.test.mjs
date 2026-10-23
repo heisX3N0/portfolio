@@ -359,7 +359,8 @@ test('/work/ lists every case study in order, with All, Banking and AI products 
   for (const [href, name] of [['#all', 'All'], ['#banking', 'Banking'], ['#ai-products', 'AI products']]) {
     assert.match(chips, new RegExp(`href="${href}"[^>]*>${name}<`), name);
   }
-  assert.doesNotMatch(html, /<script[^>]*\ssrc=/, 'filtering must not need a script file');
+  // The Cloudflare Web Analytics beacon (P4) is on every page; any other script file would be the filter's.
+  assert.doesNotMatch(html, /<script[^>]*\ssrc="(?!https:\/\/static\.cloudflareinsights\.com\/)/, 'filtering must not need a script file');
 });
 
 test('every case study card carries an artefact thumbnail', () => {

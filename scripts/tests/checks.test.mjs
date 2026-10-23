@@ -83,6 +83,11 @@ test('Lighthouse configs fail any category under 95, on mobile and desktop', () 
   }
   const desktop = JSON.parse(readFileSync(new URL('../../lighthouserc.desktop.json', import.meta.url), 'utf8'));
   assert.equal(desktop.ci.collect.settings.preset, 'desktop');
+  // Lighthouse visits must never be reported to Cloudflare Web Analytics as traffic (P4).
+  for (const file of ['lighthouserc.json', 'lighthouserc.desktop.json']) {
+    const config = JSON.parse(readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8'));
+    assert.deepEqual(config.ci.collect.settings?.blockedUrlPatterns, ['*cloudflareinsights.com/cdn-cgi/rum*'], file);
+  }
 });
 
 // P3 (SPEC 5.2, 5.4 and 11): Performance Buddy is never described as live, and projected aggregator figures are labelled.

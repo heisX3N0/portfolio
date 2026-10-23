@@ -118,6 +118,9 @@ export async function launch() {
   // Every load is a first visit: a cache hit reports transferSize 0, which would hide bytes from the page weight check.
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
+  // Test visits must never count as traffic: the analytics script still loads (and is checked against the CSP),
+  // but its report to Cloudflare is blocked.
+  await send('Network.setBlockedURLs', { urls: ['*cloudflareinsights.com/cdn-cgi/rum*'] });
 
   async function evaluate(expression) {
     const { result, exceptionDetails } = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });

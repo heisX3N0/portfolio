@@ -3,7 +3,8 @@
     "collect": {
       "staticDistDir": "./dist",
       "url": ["/", "/business-analyst/", "/work/", "/work/aggregator-onboarding-redesign/", "/styleguide/", "/404.html"],
-      "numberOfRuns": 1
+      "numberOfRuns": 1,
+      "settings": { "blockedUrlPatterns": ["*cloudflareinsights.com/cdn-cgi/rum*"] }
     },
     "assert": {
       "assertions": {
