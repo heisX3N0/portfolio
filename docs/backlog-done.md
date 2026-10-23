@@ -2,6 +2,20 @@
 
 Finished backlog items, newest first, with what shipped, owner decisions (dated) and deviations.
 
+- [x] **P5 Launch (v1)** (M). Merged 2026-10-23 in `dd6d836` ([PR #10](https://github.com/heisX3N0/portfolio/pull/10); commits `f8e015b`, `101d9c7`).
+  - **Shipped:**
+    - `scripts/launch-check.mjs` (by hand, never in CI) with the checks in `scripts/lib/launch.mjs`: HTTPS, the `http://` redirect, the `_headers` page headers as served, every sitemap page 200 with its own canonical and no `noindex` (robots, googlebot or `X-Robots-Tag`), and the `pages.dev` canonical pointing at the domain. Passes against the live domain (14 requests).
+    - Browser test for the headshot "on" state with a PNG made in the test, at 360x740, 390x844 and 1366x768, both themes; nothing committed.
+    - `docs/launch-qa.md`: evidence for every SPEC 11 item; 14 of 17 SPEC 11 boxes ticked. Lighthouse 97 to 100 mobile, 100 desktop (local, one run each), securityheaders.com A+, keyboard walk and dark-mode contrast probe on all 12 pages, all certification links and the live CV checked.
+    - README: publish a role page, turn on the headshot, deploy, custom domain, Search Console, Web Analytics hostname, launch check. `/about/` added to both Lighthouse configs.
+    - 168 tests (21 new). CI green on `101d9c7` (the first run failed only on an HTTP/2 error from `gptinvestorapp.com` in the external link check; the re-run passed).
+  - **Owner decisions (2026-10-23):** Search Console Domain property verified by DNS TXT, no tag in the repo; `pages.dev` keeps serving with canonicals to the domain, no redirect; built in a fresh session.
+  - **Deviations:**
+    - The owner had already connected the domain before the build, so the happy-path launch check passed in the PR.
+    - `/about/` added to the Lighthouse configs (SPEC 11 names it; CI did not run it).
+    - `/code-review` (high) found 8 issues: 4 fixed in `101d9c7` (crash on a redirect with no Location or a malformed sitemap loc, no request timeout, googlebot `noindex` missed), 4 left with reasons in the PR.
+  - **Left for the owner:** the Narrator spot check, confirming the CV is current, judging the README (the 3 open SPEC 11 boxes); confirming Search Console and the Web Analytics hostname. Finding: with the headshot on, the BA proof strip ends 26px below the first screen at 1366x768.
+
 - [x] **P4.5 Shorter search and share titles** (S). Merged 2026-10-23 in `6e3b134` ([PR #8](https://github.com/heisX3N0/portfolio/pull/8); commits `e8fa86f`, `2abff43`).
   - **Shipped:**
     - Optional `shortTitle` (max 60, the first part or parts of the CV title) and `shareDescription` (max 160) on role files, used for `<title>`, `og:title`, `description` and `og:description` (`src/lib/share.ts`). Without them a role page shares what it did before.
