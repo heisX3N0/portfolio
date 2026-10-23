@@ -18,9 +18,17 @@ const TYPES = {
 };
 const TEXT = new Set(['.html', '.css', '.js', '.svg', '.xml']);
 
-/** `pageHeaders` go on HTML responses only, as Cloudflare's _headers would add them (the CSP check). */
-export function serve(distDir, pageHeaders = {}) {
+/**
+ * `pageHeaders` go on HTML responses only, as Cloudflare's _headers would add them (the CSP check).
+ * `extra` serves files that exist only in a test, by URL path: { '/x.png': { type, body } }.
+ */
+export function serve(distDir, pageHeaders = {}, extra = {}) {
   const server = createServer((req, res) => {
+    const made = extra[new URL(req.url, 'http://x').pathname];
+    if (made) {
+      res.writeHead(200, { 'Content-Type': made.type }).end(made.body);
+      return;
+    }
     let path = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\//, '');
     if (path === '' || path.endsWith('/')) path += 'index.html';
     const file = join(distDir, path);

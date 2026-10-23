@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "staticDistDir": "./dist",
-      "url": ["/", "/business-analyst/", "/work/", "/work/aggregator-onboarding-redesign/", "/styleguide/", "/404.html"],
+      "url": ["/", "/business-analyst/", "/about/", "/work/", "/work/aggregator-onboarding-redesign/", "/styleguide/", "/404.html"],
       "numberOfRuns": 1,
       "settings": { "preset": "desktop", "blockedUrlPatterns": ["*cloudflareinsights.com/cdn-cgi/rum*"] }
     },

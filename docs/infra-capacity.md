@@ -2,7 +2,7 @@
 
 The portfolio site runs entirely on free plans until the owner decides otherwise. This doc records where each free limit runs out, what each user action costs, and the principles that keep those costs low. Read it before adding anything that uses a limited resource (a build, CI minutes, page weight, a third-party request), and use the checklist at the end in the pull request.
 
-Last reviewed: 2026-10-23 (branch `feat/p4-seo-hardening`, P4). Each number says whether it was measured (with the sample) or estimated (from what). Re-check against real usage (see [Measuring](#measuring)) and update this doc in the same PR whenever the infrastructure changes.
+Last reviewed: 2026-10-23 (branch `feat/p5-launch`, P5). Each number says whether it was measured (with the sample) or estimated (from what). Re-check against real usage (see [Measuring](#measuring)) and update this doc in the same PR whenever the infrastructure changes.
 
 This site uses its **own Cloudflare account**, separate from the X3N0 account that hosts Aimery and Merge X (SPEC 9.1), so its Cloudflare limits are not shared. The repository is public, so its GitHub Actions runs on standard Linux runners are free and do not count against the owner's shared 2,000 minutes (agent-vault `skills/infra-capacity/shared-quotas.md`).
 
@@ -16,7 +16,7 @@ A typical visit: a recruiter opens a role page, maybe a case study and the CV. E
 | Cloudflare Pages builds | 500 a month, 1 at a time, 20 minute timeout (same source) | 1 per push to any branch (estimate, from Git integration behaviour) | About 500 pushes a month; the owner's own work, not users |
 | Cloudflare Pages files | 20,000 per site, 25 MiB per file (same source) | 34 files in `dist/` after P4, counted (P4 added 2 OG images, `robots.txt` and page CSS files that were inlined before) | Not near |
 | `_headers` rules | 100 rules, 2,000 characters per header (same source) | 3 rules after P4, counted (`/*`, `/cv/*`, `/fonts/*`); the longest header is the CSP at 311 characters, counted | Not near |
-| GitHub Actions minutes | Free and uncounted for public repos on standard runners | About 5 to 8 minutes per CI run (estimate: install, build with 2 OG images, tests including the headless Chrome layout and CSP checks, link check, Lighthouse on 6 pages at two sizes since P4; not measured yet. Locally the Lighthouse step took about 1 minute for 12 runs, one run) | Not a wall while the repo is public |
+| GitHub Actions minutes | Free and uncounted for public repos on standard runners | About 5 to 8 minutes per CI run (estimate: install, build with 2 OG images, tests including the headless Chrome layout and CSP checks, link check, Lighthouse on 7 pages at two sizes since P5, which added `/about/`; not measured yet. Locally the Lighthouse step took about 1 minute for 12 runs, one run, P4. P5 also added the launch check's local-server tests (under 1 second locally, one run) and the headshot browser cases (about 3 seconds locally, one run)) | Not a wall while the repo is public |
 | Cloudflare Web Analytics (P4) | Free; cookieless | 1 script (10,264 bytes gzip, measured with curl, one fetch; cached for a day) and 1 report request to `cloudflareinsights.com/cdn-cgi/rum` per page view (seen in headless Chrome, P4) | Not a wall |
 
 **In user terms:** no free limit caps visitors. A static Pages site has no listed request or bandwidth limit, so the number of users supported is not limited by any free quota. The only wall is the owner's own: Pages builds (500 a month).
@@ -29,6 +29,7 @@ A typical visit: a recruiter opens a role page, maybe a case study and the CV. E
 | Visitor opens the CV | 0 | 0 | 60,495 bytes (the PDF; outside the 200 KB page budget, SPEC 9.4) |
 | Owner pushes to a PR branch | 1 | 1 CI run (0 minutes counted: public repo) | 0 |
 | Owner merges to `main` | 1 | 0 (CI runs on PRs only) | 0 |
+| Owner runs the launch check (`node scripts/launch-check.mjs`, by hand, P5) | 0 | 0 (never in CI) | 14 requests (counted, one run, 2026-10-23): 13 to the domain and 1 to the `pages.dev` home page. About 211 KB of HTML and XML before compression (the same files in `dist/`, measured on disk). Not visitor traffic, and Web Analytics does not count it (no script runs) |
 | Link shared on LinkedIn, Slack or similar | 0 | 0 | The crawler fetches the page and one OG image: 30,830 bytes (site) or 37,332 bytes (BA role), measured on disk, P4. Not part of any visitor's page weight |
 
 ## Known overheads to fix
