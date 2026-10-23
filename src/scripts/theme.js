@@ -16,7 +16,8 @@
   function apply(theme) {
     root.setAttribute('data-theme', theme);
     var button = document.querySelector('[data-theme-toggle]');
-    if (button) button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    // The name says what a click does; the icon (moon or sun) shows it by shape, not colour.
+    if (button) button.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
   }
 
   function chosen() {

@@ -25,12 +25,18 @@
   --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 
   /* Type scale: 1.25 ratio, fluid between 360px and 1280px. */
+  /* Type scale: 1.25 ratio, fluid between 360px and 1280px. */
   --step--1: clamp(0.83rem, 0.81rem + 0.1vw, 0.89rem);
   --step-0: clamp(1rem, 0.97rem + 0.15vw, 1.09rem);
   --step-1: clamp(1.2rem, 1.14rem + 0.3vw, 1.38rem);
   --step-2: clamp(1.44rem, 1.33rem + 0.5vw, 1.73rem);
   --step-3: clamp(1.73rem, 1.55rem + 0.8vw, 2.2rem);
   --step-4: clamp(2.07rem, 1.79rem + 1.25vw, 2.8rem);
+
+  /* Hero display sizes, fluid between 390px and 1366px (direction B mock-ups). */
+  --display: clamp(2.25rem, 1.6rem + 2.66vw, 3.875rem);
+  --positioning: clamp(1.5625rem, 1.39rem + 0.72vw, 2rem);
+  --eyebrow: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -45,7 +51,7 @@
   --wide: 72rem;
   --radius: 6px;
 
-  /* Light palette. Contrast ratios against --bg are listed on /styleguide/. */
+  /* Light palette. Every text and UI pair is listed, with its contrast ratio, on /styleguide/ (src/lib/palette.ts). */
   --bg: #faf8f4;
   --surface: #ffffff;
   --text: #1a1d23;
@@ -54,9 +60,20 @@
   --accent-contrast: #ffffff;
   --link: #1f3a5f;
   --border: #d9d4ca;
-  --warm: #9a4419;
-  --warm-bg: #f7e9de;
+  --rule: #e6e1d8;
   --focus: #1f3a5f;
+
+  /* Ochre gold: title line, primary action, rules, highlights and tags. Never body text or large fills. */
+  --gold: #7a5300;
+  --gold-bg: #f6ebcf;
+
+  /* Navy hero band and header: the same in both themes, apart from the bottom edge. */
+  --hero-bg: #172c49;
+  --on-hero: #faf8f4;
+  --on-hero-muted: #c9d3e1;
+  --on-hero-gold: #e8c26a;
+  --hero-rule: #2e4566;
+  --hero-edge: #172c49;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -70,9 +87,12 @@
     --accent-contrast: #12161d;
     --link: #a9c2e4;
     --border: #313a47;
-    --warm: #f2b48c;
-    --warm-bg: #3a261b;
+    --rule: #313a47;
     --focus: #a9c2e4;
+    --gold: #e8c26a;
+    --gold-bg: #33290f;
+    /* The band stays navy on the dark page; a lighter navy would be only 1.25:1 against it, so a 3.2:1 edge keeps its shape. */
+    --hero-edge: #4a6890;
   }
 }
 
@@ -86,7 +106,9 @@
   --accent-contrast: #12161d;
   --link: #a9c2e4;
   --border: #313a47;
-  --warm: #f2b48c;
-  --warm-bg: #3a261b;
+  --rule: #313a47;
   --focus: #a9c2e4;
+  --gold: #e8c26a;
+  --gold-bg: #33290f;
+  --hero-edge: #4a6890;
 }

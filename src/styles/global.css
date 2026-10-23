@@ -11,7 +11,12 @@ html {
   text-size-adjust: 100%;
 }
 
+/* The footer sits at the bottom on short pages. */
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -106,7 +111,12 @@ svg {
 }
 main {
   display: block;
-  padding-block: var(--space-7);
+  flex: 1;
+  padding-top: var(--space-7);
+}
+/* A hero carries on from the navy header, with no gap. */
+main:has(> .hero:first-child) {
+  padding-top: 0;
 }
 section + section {
   margin-top: var(--space-8);
@@ -139,13 +149,33 @@ section + section {
   background: transparent;
   color: var(--link);
 }
+/* On the navy band: gold for the one primary action, an outline for the rest. */
+.button--gold {
+  justify-content: center;
+  min-height: 48px;
+  border-color: var(--on-hero-gold);
+  background: var(--on-hero-gold);
+  color: var(--hero-bg);
+}
+.button--on-hero {
+  justify-content: center;
+  min-height: 48px;
+  border: 1.5px solid var(--on-hero);
+  background: transparent;
+  color: var(--on-hero);
+}
+.button--gold:hover,
+.button--on-hero:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
 }
 
-/* Tags: warm accent, text label so meaning never relies on colour */
+/* Tags: gold accent, text label so meaning never relies on colour */
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -158,8 +188,8 @@ section + section {
   display: inline-block;
   padding: 0.1em 0.6em;
   border-radius: 999px;
-  background: var(--warm-bg);
-  color: var(--warm);
+  background: var(--gold-bg);
+  color: var(--gold);
   font-size: var(--step--1);
   font-weight: 600;
 }
@@ -208,12 +238,36 @@ section + section {
 .card:hover {
   border-color: var(--accent);
 }
+/* Figure first: the number is what a skim reader sees. */
 .card__figure {
-  margin-top: auto;
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 3px solid var(--gold);
   font-family: var(--font-serif);
-  font-size: var(--step-1);
+  font-size: var(--step-3);
   font-weight: 600;
+  line-height: 1.1;
   color: var(--accent);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.card__summary {
+  margin: 0;
+  color: var(--muted);
+}
+.card .tags {
+  margin-top: auto;
+}
+.card__thumb {
+  margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-5)) 0;
+  padding: var(--space-4);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.card__thumb svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* Callout box ("At a glance", build notes) */
@@ -226,26 +280,6 @@ section + section {
   border-radius: var(--radius);
 }
 .callout > :last-child { margin-bottom: 0; }
-
-/* Proof strip: one row on desktop, two columns on mobile (SPEC 4.1) */
-.proof-strip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-  padding: 0;
-  list-style: none;
-}
-.proof-strip li {
-  padding: var(--space-3) var(--space-4);
-  border-top: 3px solid var(--accent);
-  background: var(--surface);
-  font-size: var(--step--1);
-  font-weight: 600;
-  line-height: 1.4;
-}
-@media (min-width: 64rem) {
-  .proof-strip { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
 
 /* Figures: diagrams scroll inside the figure, never the page (SPEC 7) */
 figure {
@@ -271,7 +305,7 @@ figcaption {
 }
 .figure__label {
   font-weight: 600;
-  color: var(--warm);
+  color: var(--gold);
 }
 
 /* Tables: real tables, scroll inside their wrapper on narrow screens */

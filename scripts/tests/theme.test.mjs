@@ -41,7 +41,14 @@ test('toggle still works when localStorage throws', () => {
   assert.equal(button.hidden, false);
   assert.doesNotThrow(() => button.click());
   assert.equal(attrs['data-theme'], 'dark');
-  assert.equal(button.attrs['aria-pressed'], 'true');
+  assert.equal(button.attrs['aria-label'], 'Switch to light theme');
+});
+
+test('the toggle name says what a click does', () => {
+  const { button } = run({ storage: { getItem: () => null, setItem() {} } });
+  assert.equal(button.attrs['aria-label'], 'Switch to dark theme');
+  button.click();
+  assert.equal(button.attrs['aria-label'], 'Switch to light theme');
 });
 
 test('ignores a stored value that is not a theme', () => {

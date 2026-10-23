@@ -2,9 +2,9 @@
 
 The portfolio site runs entirely on free plans until the owner decides otherwise. This doc records where each free limit runs out, what each user action costs, and the principles that keep those costs low. Read it before adding anything that uses a limited resource (a build, CI minutes, page weight, a third-party request), and use the checklist at the end in the pull request.
 
-Last reviewed: 2026-10-23 (branch `feat/p1-scaffold`, before first merge). Each number says whether it was measured (with the sample) or estimated (from what). Re-check against real usage (see [Measuring](#measuring)) and update this doc in the same PR whenever the infrastructure changes.
+Last reviewed: 2026-10-23 (branch `feat/p1-5-visual-identity`, P1.5). Each number says whether it was measured (with the sample) or estimated (from what). Re-check against real usage (see [Measuring](#measuring)) and update this doc in the same PR whenever the infrastructure changes.
 
-This site uses its **own Cloudflare account**, separate from the X3N0 account that hosts Aimery and Merge X (SPEC 9.1), so its Cloudflare limits are not shared. GitHub Actions minutes are shared with the owner's other private repos while this repo is private (agent-vault `skills/infra-capacity/shared-quotas.md`); once it is public, its Actions runs are free and not counted.
+This site uses its **own Cloudflare account**, separate from the X3N0 account that hosts Aimery and Merge X (SPEC 9.1), so its Cloudflare limits are not shared. The repository is public, so its GitHub Actions runs on standard Linux runners are free and do not count against the owner's shared 2,000 minutes (agent-vault `skills/infra-capacity/shared-quotas.md`).
 
 ## When each piece hits its limit
 
@@ -16,24 +16,34 @@ A typical visit: a recruiter opens a role page, maybe a case study and the CV. E
 | Cloudflare Pages builds | 500 a month, 1 at a time, 20 minute timeout (same source) | 1 per push to any branch (estimate, from Git integration behaviour) | About 500 pushes a month; the owner's own work, not users |
 | Cloudflare Pages files | 20,000 per site, 25 MiB per file (same source) | Under 100 files after P1 (estimate) | Not near |
 | `_headers` rules | 100 rules, 2,000 characters per header (same source) | 1 rule after P1; about 3 to 5 after P4 (estimate) | Not near |
-| GitHub Actions minutes (shared while private) | 2,000 a month across private repos; Linux runners | About 4 to 6 minutes per CI run (estimate: install, build, link check, Lighthouse on 3 pages; not measured yet) | While private: about 15 to 25 CI runs eat 100 minutes of a quota already near 70% (shared-quotas.md, 21 Oct). Public: no limit |
+| GitHub Actions minutes | Free and uncounted for public repos on standard runners | About 4 to 6 minutes per CI run (estimate: install, build, tests including the headless Chrome layout checks, link check, Lighthouse on 3 pages; not measured yet) | Not a wall while the repo is public |
 | Cloudflare Web Analytics (from P4) | Free; cookieless | 1 beacon request per page view (from Cloudflare's docs) | Not a wall |
 
-**In user terms:** no free limit caps visitors. A static Pages site has no listed request or bandwidth limit, so the number of users supported is not limited by any free quota. The only walls are the owner's own: Pages builds (500 a month) and, while the repo is private, shared Actions minutes.
+**In user terms:** no free limit caps visitors. A static Pages site has no listed request or bandwidth limit, so the number of users supported is not limited by any free quota. The only wall is the owner's own: Pages builds (500 a month).
 
 ### What each action costs
 
 | Action | Pages builds | Actions minutes | Bytes to visitor |
 | --- | --- | --- | --- |
-| Visitor opens a page | 0 | 0 | Under 200 KB per page (SPEC 9.4 budget; measured per phase in the build report) |
-| Owner pushes to a PR branch | 1 | 1 CI run (about 4 to 6 if private, 0 if public; estimate) | 0 |
+| Visitor opens a page | 0 | 0 | About 106 to 113 KB on a first visit (measured, gzip, one load each of `/`, `/styleguide/` and `/404.html` at 390x844, P1.5); the browser test fails any page over 200 KB (SPEC 9.4) |
+| Owner pushes to a PR branch | 1 | 1 CI run (0 minutes counted: public repo) | 0 |
 | Owner merges to `main` | 1 | 0 (CI runs on PRs only) | 0 |
 
 ## Known overheads to fix
 
-| Overhead | Cost today | Fix | Backlog ID |
-| --- | --- | --- | --- |
-| Repo still private | CI minutes count against the shared 2,000 | Owner makes the repo public after reviewing `SPEC.md` | P1 owner decision |
+None open. (The repo was private until P1; it is now public, so CI minutes no longer count.)
+
+### Page weight, first visit (measured P1.5, one load each, gzip on a local server)
+
+| File | Bytes | Notes |
+| --- | --- | --- |
+| `inter-latin.woff2` | 48,556 | Preloaded; every page |
+| `source-serif-4-latin.woff2` | 51,236 | Preloaded from P1.5 (the h1 is serif); every page |
+| Site CSS (`BaseLayout` bundle) | 3,376 | 12,445 before gzip |
+| Style guide CSS | 2,098 | `/styleguide/` only |
+| HTML | 2,610 to 7,508 | `/404.html` smallest, `/styleguide/` largest |
+
+Fonts are about 88% to 94% of a first visit and are cached for a year after it (`_headers`). The positioning line uses the regular serif rather than a third, italic file (about 50 KB, estimate), and `₦` waits for P2's small naira-only file rather than the 85 KB latin-ext subset.
 
 ## Upgrade order
 
@@ -50,8 +60,8 @@ Nothing here is expected to need paid capacity. If builds ever ran out, the firs
 ## Measuring
 
 - Pages builds: Cloudflare dashboard, Workers and Pages, the project, Deployments (count per month). Works on a phone.
-- Actions minutes: GitHub, Settings, Billing and plans, Usage (only matters while private).
-- Page weight: the build report lists transfer size per page from Lighthouse (`lhci` output).
+- Actions minutes: not counted while the repo is public (GitHub, Settings, Billing and plans, Usage, to confirm).
+- Page weight: `pnpm test` (the browser test sums each page's transfer and fails over 200 KB); Lighthouse reports in CI give the same per page.
 
 ## PR checklist (infrastructure cost)
 

@@ -1,4 +1,4 @@
-# CI for every PR (SPEC 9.4): install, type check, build, tests and internal links, external links, Lighthouse.
+# CI for every PR (SPEC 9.4): install, type check, build, tests (including the headless Chrome layout checks) and internal links, external links, Lighthouse.
 # The figures check joins in P4.
 name: CI
 
@@ -16,7 +16,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Cap a stuck run: Actions minutes are a shared free quota while the repo is private.
+    # Cap a stuck run (the repo is public, so minutes are not counted, but a hung run still blocks the PR).
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

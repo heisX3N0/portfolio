@@ -1,22 +1,32 @@
 ---
-// Style guide (SPEC 10 phase 1). Not in the sitemap. Sample text is approved copy from SPEC.md only.
+// Style guide (SPEC 10 phase 1, rebuilt for P1.5 direction B). Not in the sitemap. Sample text is approved copy
+// from SPEC.md only. The hero sample comes first so its first screen can be checked at 1366x768 and 390x844.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import ProofStrip from '../components/ProofStrip.astro';
 import Card from '../components/Card.astro';
 import Figure from '../components/Figure.astro';
+import Icon from '../components/Icon.astro';
 import { getSite } from '../lib/site';
-import { palette, contrast } from '../lib/palette';
+import { palette, pairs, contrast } from '../lib/palette';
 
 const site = await getSite();
 
-// Text-on-background pairs that must pass WCAG AA: 4.5 for text, 3 for UI elements (SPEC 8).
-const pairs = [
-  { fg: 'text', bg: 'bg', min: 4.5, use: 'Body text' },
-  { fg: 'muted', bg: 'bg', min: 4.5, use: 'Secondary text' },
-  { fg: 'accent', bg: 'bg', min: 4.5, use: 'Links, headings accent' },
-  { fg: 'accent', bg: 'surface', min: 4.5, use: 'Links on cards' },
-  { fg: 'warm', bg: 'warm-bg', min: 4.5, use: 'Tags' },
-  { fg: 'border', bg: 'bg', min: 1, use: 'Decorative borders (no meaning)' },
-] as const;
+// BA role page copy (SPEC 2.1, 4.1). P2 moves this into src/content/roles/business-analyst.md.
+const ba = {
+  title: 'Business Analyst | AI & Digital Solutions | CBAP | PSPO II',
+  positioning: 'Business Analyst who builds with AI.',
+  supporting:
+    'I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build, then test that what ships is what was needed. CBAP-certified, with 4 years across banking, payments and AI products.',
+  contactLine: "Hiring for a BA or AI BA role? I'd like to hear about it.",
+  proof: [
+    { figure: '4 weeks', text: 'First bank to comply with a new CBN limits circular' },
+    { figure: '₦268.36M', text: 'Deposits mobilised in 6 months (Beta 2.0)' },
+    { figure: '10,000+', text: 'App downloads (GPT Investor)' },
+    { figure: 'Live', text: 'Prompt-injection tested AI product (Aimery)' },
+    { figure: 'CBAP', text: 'and PSPO II certified' },
+  ],
+};
 
 const steps = [
   { step: 'Discover', line: 'Stakeholder interviews, workshops, current-state mapping' },
@@ -27,20 +37,48 @@ const steps = [
 ];
 ---
 
-<BaseLayout title={`Style guide | ${site.name}`} description="Type, colour, card, figure and table styles used across this site.">
+<BaseLayout
+  title={`Style guide | ${site.name}`}
+  description="Hero, proof strip, type, colour, card, figure, table and contact styles used across this site."
+  contactLine={ba.contactLine}
+>
+  <Hero
+    name={site.name}
+    title={ba.title}
+    positioning={ba.positioning}
+    supporting={ba.supporting}
+    workHref="#sg-cards"
+    cvFile={site.defaultCv}
+    email={site.email}
+    linkedin={site.linkedin}
+    contactLine={ba.contactLine}
+    location={site.location}
+    proof={ba.proof}
+    headshot={site.headshot}
+  />
+
   <div class="container">
-    <h1>Style guide</h1>
-    <p class="lead">The building blocks for every page. Sample text comes from the approved copy in SPEC.md.</p>
+    <section class="sg-intro" aria-labelledby="sg-title">
+      <h2 id="sg-title">Style guide</h2>
+      <p class="lead">
+        The building blocks for every page. Above is the BA role page's first screen, built from these parts. Sample text comes
+        from the approved copy in SPEC.md. Use the theme button in the header to see each part in dark mode, and narrow the
+        window to see the mobile layout.
+      </p>
+    </section>
 
     <section aria-labelledby="sg-type">
       <h2 id="sg-type">Type</h2>
-      <p class="muted small">Headings: Source Serif 4. Body: Inter. Both self-hosted, Latin subset, <code>font-display: swap</code>.</p>
+      <p class="muted small">
+        Headings: Source Serif 4. Body: Inter. Both self-hosted, Latin subset, <code>font-display: swap</code>. The hero name
+        uses the display size (about 62px desktop, 36px mobile); the positioning line uses the regular serif at weight 400.
+      </p>
       <div class="prose">
-        <h1>Business Analyst who builds with AI.</h1>
-        <h2>I work where business, delivery and product meet.</h2>
+        <p class="sg-display">Boluwatife Olapade</p>
+        <p class="sg-positioning">Business Analyst who builds with AI.</p>
         <h3>From CBN circular to live limits in 4 weeks</h3>
         <h4>At a glance</h4>
-        <p class="lead">Business Analyst | AI &amp; Digital Solutions | CBAP | PSPO II</p>
+        <p class="lead">I work where business, delivery and product meet.</p>
         <p>
           I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build,
           then test that what ships is what was needed. CBAP-certified, with 4 years across banking, payments and AI products.
@@ -56,10 +94,15 @@ const steps = [
 
     <section aria-labelledby="sg-colour">
       <h2 id="sg-colour">Colour</h2>
-      <p class="prose">
-        Deep navy matches the CV. The warm accent is used only for tags and artefact labels.{' '}
-        <strong>Proposed warm accent, for owner approval:</strong> burnt orange.
-      </p>
+      <div class="prose">
+        <p>
+          Deep navy matches the CV and carries the header and hero band. Ochre gold is the one warm accent: the title line, the
+          primary action, rules, highlights and tags. It is never used for body text or large fills.
+        </p>
+        <p>
+          In dark mode the band stays the same navy, with a 1px lighter edge so it keeps its shape against the dark page.
+        </p>
+      </div>
       {
         (['light', 'dark'] as const).map((mode) => (
           <div class="swatch-set">
@@ -85,7 +128,8 @@ const steps = [
                 </thead>
                 <tbody>
                   {pairs.map((p) => {
-                    const ratio = contrast(palette[mode][p.fg], palette[mode][p.bg]);
+                    const colours: Record<string, string> = palette[mode];
+                    const ratio = contrast(colours[p.fg], colours[p.bg]);
                     return (
                       <tr>
                         <th scope="row">{p.use}</th>
@@ -107,9 +151,16 @@ const steps = [
 
     <section aria-labelledby="sg-actions">
       <h2 id="sg-actions">Buttons and tags</h2>
-      <div class="actions">
-        <a class="button button--primary" href="#sg-cards">View my work</a>
-        <a class="button button--secondary" href={site.defaultCv}>Download CV</a>
+      <p class="muted small">On the navy band: gold for the one primary action, an outline for the rest. On the page: navy.</p>
+      <div class="sg-band">
+        <div class="actions">
+          <a class="button button--gold" href="#sg-cards">View my work</a>
+          <a class="button button--on-hero" href={site.defaultCv}><Icon name="download" />Download CV</a>
+        </div>
+      </div>
+      <div class="actions sg-gap">
+        <a class="button button--primary" href={site.defaultCv}><Icon name="download" />Download CV</a>
+        <a class="button button--secondary" href="#sg-cards">View my work</a>
       </div>
       <ul class="tags sg-gap" aria-label="Tags">
         <li class="tag">Banking</li>
@@ -123,21 +174,35 @@ const steps = [
 
     <section aria-labelledby="sg-proof">
       <h2 id="sg-proof">Proof strip</h2>
-      <ul class="proof-strip">
-        <li>CBAP and PSPO II certified</li>
-        <li>First bank to comply with a new CBN limits circular, in 4 weeks</li>
-        <li>₦268.36M deposits mobilised in 6 months (Beta 2.0)</li>
-        <li>10,000+ app downloads (GPT Investor)</li>
-        <li>Prompt-injection tested AI product, live (Aimery)</li>
-      </ul>
-      <p class="small muted">
+      <p class="muted small">
+        Figure first, description underneath. In the hero it overlaps the band on desktop; on mobile it is a 5-row list with
+        the figure on the left. On its own it looks like this:
+      </p>
+      <ProofStrip items={ba.proof} />
+      <p class="small muted sg-gap">
         TODO(P2): the naira sign falls back to a system font here, because it is outside the Latin subset. P2 adds a small
         naira-only font file rather than the 85 KB extended subset.
       </p>
     </section>
 
+    <section aria-labelledby="sg-headshot">
+      <h2 id="sg-headshot">Headshot slot</h2>
+      <div class="prose">
+        <p>
+          Off in v1 (<code>headshot.show: false</code> in <code>site.yaml</code>): the hero above is the off state, complete
+          with no gap. With it on, a round image with a gold ring sits beside the name on desktop (160px) and above it on mobile
+          (96px), with alt text "{site.name}".
+        </p>
+      </div>
+      <div class="sg-band sg-headshot" aria-hidden="true">
+        <span class="sg-headshot__circle"></span>
+        <span class="sg-headshot__name">{site.name}</span>
+      </div>
+    </section>
+
     <section aria-labelledby="sg-cards">
       <h2 id="sg-cards">Cards</h2>
+      <p class="muted small">Figure first, then title, one-line outcome and tags. The first card shows the artefact thumbnail slot that P3 fills.</p>
       <ul class="card-grid">
         <li>
           <Card
@@ -146,7 +211,16 @@ const steps = [
             summary="Live in 4 weeks, making the Bank the first to comply."
             tags={['Banking', 'Requirements']}
             figure="4 weeks"
-          />
+          >
+            <svg slot="thumbnail" class="sg-thumb" viewBox="0 0 300 90" aria-hidden="true" focusable="false">
+              <rect class="sg-thumb__lane" x="0" y="0" width="300" height="44" />
+              <rect class="sg-thumb__lane" x="0" y="46" width="300" height="44" />
+              <rect class="sg-thumb__box" x="16" y="10" width="64" height="24" rx="4" />
+              <rect class="sg-thumb__box" x="118" y="56" width="64" height="24" rx="4" />
+              <rect class="sg-thumb__box" x="220" y="10" width="64" height="24" rx="4" />
+              <path class="sg-thumb__arrow" d="M80 22 H100 V68 H118 M182 68 H200 V22 H220" />
+            </svg>
+          </Card>
         </li>
         <li>
           <Card
@@ -154,7 +228,7 @@ const steps = [
             href="#sg-cards"
             summary="Injected postings scored back in the clean range after the fix."
             tags={['AI product', 'AI governance']}
-            figure="79 to 80 after the fix"
+            figure="79 to 80"
           />
         </li>
         <li>
@@ -222,10 +296,34 @@ const steps = [
         </table>
       </div>
     </section>
+
+    <section aria-labelledby="sg-contact">
+      <h2 id="sg-contact">Contact section</h2>
+      <p class="prose">
+        Every page ends with the contact section below, and the header's "Contact" jumps to it. Role pages pass their own
+        sentence (this page uses the BA one); other pages show the links without a sentence.
+      </p>
+    </section>
   </div>
 </BaseLayout>
 
 <style>
+  .sg-intro {
+    margin-top: var(--space-8);
+  }
+  .sg-display {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--display);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.015em;
+  }
+  .sg-positioning {
+    font-family: var(--font-serif);
+    font-size: var(--positioning);
+    line-height: 1.2;
+  }
   .swatch-set + .swatch-set {
     margin-top: var(--space-6);
   }
@@ -249,11 +347,53 @@ const steps = [
     border: 1px solid var(--border);
     border-radius: var(--radius);
   }
+  .sg-band {
+    padding: var(--space-5);
+    background: var(--hero-bg);
+    color: var(--on-hero);
+    border: 1px solid var(--hero-edge);
+    border-radius: var(--radius);
+  }
+  .sg-band :focus-visible {
+    outline-color: var(--on-hero-gold);
+  }
   .sg-gap {
     margin-top: var(--space-5);
   }
+  .sg-headshot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    max-width: 32rem;
+  }
+  .sg-headshot__circle {
+    flex: none;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+    border: 2px solid var(--on-hero-gold);
+    background: var(--hero-rule);
+  }
+  .sg-headshot__name {
+    font-family: var(--font-serif);
+    font-size: var(--step-3);
+    font-weight: 600;
+  }
   .h4 {
     font-size: var(--step-1);
+  }
+  .sg-thumb__lane {
+    fill: var(--surface);
+  }
+  .sg-thumb__box {
+    fill: var(--bg);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .sg-thumb__arrow {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 2;
   }
   .flow__box {
     fill: var(--bg);
@@ -261,7 +401,7 @@ const steps = [
     stroke-width: 2;
   }
   .flow__num {
-    fill: var(--warm);
+    fill: var(--gold);
     font: 600 14px var(--font-sans);
   }
   .flow__label {

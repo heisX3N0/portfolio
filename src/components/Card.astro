@@ -1,5 +1,6 @@
 ---
-// Case study card (SPEC 4.1 item 3): title, one-line outcome, context tags, one figure.
+// Case study card (SPEC 4.1 item 3): figure first, then title, one-line outcome and context tags.
+// The "thumbnail" slot takes an artefact thumbnail (P3); without one the card looks complete.
 interface Props {
   title: string;
   href: string;
@@ -9,13 +10,21 @@ interface Props {
 }
 
 const { title, href, summary, tags, figure } = Astro.props;
+const hasThumbnail = Astro.slots.has('thumbnail');
 ---
 
 <article class="card">
+  {
+    hasThumbnail && (
+      <div class="card__thumb">
+        <slot name="thumbnail" />
+      </div>
+    )
+  }
+  {figure && <p class="card__figure">{figure}</p>}
   <h3><a href={href}>{title}</a></h3>
-  <p class="muted">{summary}</p>
+  <p class="card__summary">{summary}</p>
   <ul class="tags" aria-label="Tags">
     {tags.map((tag) => <li class="tag">{tag}</li>)}
   </ul>
-  {figure && <p class="card__figure">{figure}</p>}
 </article>

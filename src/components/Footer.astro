@@ -15,10 +15,10 @@ const { site } = Astro.props;
       <li><a href={site.linkedin}>LinkedIn</a></li>
       <li><a href={site.github}>GitHub</a></li>
     </ul>
-    <p class="small muted">
-      Last updated {getLastUpdated()} ·{' '}
-      <a href="/about/#how-this-site-was-built">Built from a spec with Claude Code</a>
-    </p>
+    <ul class="site-footer__meta small muted">
+      <li>Last updated {getLastUpdated()}</li>
+      <li><a href="/about/#how-this-site-was-built">Built from a spec with Claude Code</a></li>
+    </ul>
   </div>
 </footer>
 
@@ -33,7 +33,8 @@ const { site } = Astro.props;
     justify-content: space-between;
     gap: var(--space-3) var(--space-5);
   }
-  .site-footer__links {
+  .site-footer__links,
+  .site-footer__meta {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1) var(--space-5);
@@ -41,11 +42,23 @@ const { site } = Astro.props;
     padding: 0;
     list-style: none;
   }
-  .site-footer p {
-    margin: 0;
+  /* Mobile: one item per line, so no separator is left dangling at a line end. */
+  .site-footer__meta {
+    flex-direction: column;
   }
   .site-footer a {
     display: inline-block;
     padding-block: var(--space-1);
+  }
+  @media (min-width: 48rem) {
+    .site-footer__meta {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-2);
+    }
+    .site-footer__meta li + li::before {
+      content: '·';
+      margin-right: var(--space-2);
+    }
   }
 </style>
