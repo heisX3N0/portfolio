@@ -325,6 +325,7 @@ test('each case study follows the template, in order (SPEC 4.3)', () => {
   }
 });
 
+// The floor is 450, not SPEC 4.3's 600: the owner accepted shorter studies where the fact sheet is thin (2026-10-23).
 test('case study prose is 450 to 900 words, artefacts and navigation not counted (SPEC 4.3 target: 600 to 900)', () => {
   for (const slug of STUDIES) {
     const prose = article(study(slug))
