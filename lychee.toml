@@ -13,6 +13,8 @@ exclude = [
   "^file://",
   # LinkedIn returns 999 to automated requests; the URL is checked by hand.
   "^https://www\\.linkedin\\.com/",
+  # Substack returns 403 to GitHub's runners (200 from a home connection); the URLs are checked by hand.
+  "^https://xmusings\\.substack\\.com/",
   # The site's own domain is not live until P5.
   "^https://boluwatife\\.olapade\\.site/",
 ]
