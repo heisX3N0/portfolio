@@ -1,0 +1,16 @@
+# Site-wide settings and contact links (SPEC 6.4 and 9.2). Edit and push to change them.
+site:
+  name: Boluwatife Olapade
+  rootLine: I work where business, delivery and product meet.
+  rootIntro: A Business Analyst and Project Manager at Access Bank who also builds AI products through Version Phi.
+  email: olapadeben@gmail.com
+  linkedin: https://www.linkedin.com/in/boluwatife-olapade
+  github: https://github.com/heisX3N0
+  substack: https://xmusings.substack.com/
+  location: Lagos, Nigeria
+  # The CV the header opens outside a role page, until other roles are live (SPEC 3).
+  defaultCv: /cv/business-analyst.pdf
+  # Hero headshot slot (SPEC 8). Off in v1; set show: true and add src to turn it on.
+  headshot:
+    show: false
+    src: ""

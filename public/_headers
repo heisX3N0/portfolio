@@ -1,0 +1,10 @@
+# Cloudflare Pages headers. Security headers and the CSP arrive in P4 (SPEC 9.5).
+
+# CV PDFs open in the browser and stay out of search results (SPEC 4.5).
+/cv/*
+  Content-Disposition: inline
+  X-Robots-Tag: noindex
+
+# Fonts never change name without changing content.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

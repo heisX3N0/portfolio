@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSite } from '../lib/site';
+
+const site = await getSite();
+---
+
+<BaseLayout title={`Page not found | ${site.name}`} description="This page could not be found." canonical={false}>
+  <div class="container prose">
+    <h1>Page not found</h1>
+    <p class="lead">That page isn't here. The link may be out of date or mistyped.</p>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/work/">Work</a></li>
+      <li><a href="/business-analyst/">Business Analyst</a></li>
+    </ul>
+  </div>
+</BaseLayout>

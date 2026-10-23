@@ -1,0 +1,82 @@
+---
+interface Props {
+  site: { name: string; email: string };
+  cvFile: string;
+}
+
+const { site, cvFile } = Astro.props;
+const path = Astro.url.pathname;
+const current = (href: string) => (path.startsWith(href) ? 'page' : undefined);
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__name" href="/" aria-current={path === '/' ? 'page' : undefined}>{site.name}</a>
+    <nav aria-label="Main">
+      <ul class="site-nav">
+        <li><a href="/work/" aria-current={current('/work/')}>Work</a></li>
+        <li><a href="/about/" aria-current={current('/about/')}>About</a></li>
+        <li><a href={cvFile}>CV</a></li>
+        <li><a href={`mailto:${site.email}`}>Contact</a></li>
+        <li>
+          <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" hidden>Dark theme</button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--border);
+  }
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    padding-block: var(--space-4);
+  }
+  .site-header__name {
+    font-family: var(--font-serif);
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .site-nav a {
+    display: inline-block;
+    padding-block: var(--space-2);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .site-nav a:hover,
+  .site-nav a[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+  .theme-toggle {
+    min-height: 44px;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--step--1);
+    cursor: pointer;
+  }
+  .theme-toggle[aria-pressed='true'] {
+    border-color: var(--accent);
+  }
+</style>

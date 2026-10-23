@@ -1,0 +1,276 @@
+---
+// Style guide (SPEC 10 phase 1). Not in the sitemap. Sample text is approved copy from SPEC.md only.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Card from '../components/Card.astro';
+import Figure from '../components/Figure.astro';
+import { getSite } from '../lib/site';
+import { palette, contrast } from '../lib/palette';
+
+const site = await getSite();
+
+// Text-on-background pairs that must pass WCAG AA: 4.5 for text, 3 for UI elements (SPEC 8).
+const pairs = [
+  { fg: 'text', bg: 'bg', min: 4.5, use: 'Body text' },
+  { fg: 'muted', bg: 'bg', min: 4.5, use: 'Secondary text' },
+  { fg: 'accent', bg: 'bg', min: 4.5, use: 'Links, headings accent' },
+  { fg: 'accent', bg: 'surface', min: 4.5, use: 'Links on cards' },
+  { fg: 'warm', bg: 'warm-bg', min: 4.5, use: 'Tags' },
+  { fg: 'border', bg: 'bg', min: 1, use: 'Decorative borders (no meaning)' },
+] as const;
+
+const steps = [
+  { step: 'Discover', line: 'Stakeholder interviews, workshops, current-state mapping' },
+  { step: 'Model', line: 'BPMN and swimlane diagrams, customer journeys, data and access rules' },
+  { step: 'Specify', line: 'Solution requirements documents, user stories, acceptance criteria, Definition of Ready' },
+  { step: 'Deliver', line: 'Backlog refinement, sprint planning, vendor and dev coordination' },
+  { step: 'Validate', line: 'SIT/UAT, sign-off, production readiness, monitoring' },
+];
+---
+
+<BaseLayout title={`Style guide | ${site.name}`} description="Type, colour, card, figure and table styles used across this site.">
+  <div class="container">
+    <h1>Style guide</h1>
+    <p class="lead">The building blocks for every page. Sample text comes from the approved copy in SPEC.md.</p>
+
+    <section aria-labelledby="sg-type">
+      <h2 id="sg-type">Type</h2>
+      <p class="muted small">Headings: Source Serif 4. Body: Inter. Both self-hosted, Latin subset, <code>font-display: swap</code>.</p>
+      <div class="prose">
+        <h1>Business Analyst who builds with AI.</h1>
+        <h2>I work where business, delivery and product meet.</h2>
+        <h3>From CBN circular to live limits in 4 weeks</h3>
+        <h4>At a glance</h4>
+        <p class="lead">Business Analyst | AI &amp; Digital Solutions | CBAP | PSPO II</p>
+        <p>
+          I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build,
+          then test that what ships is what was needed. CBAP-certified, with 4 years across banking, payments and AI products.
+        </p>
+        <p class="small muted">Small text: Lagos, Nigeria</p>
+        <p><a href={site.substack}>A text link to Substack</a></p>
+        <ul>
+          <li>Treat regulatory text as requirements input, with clause-level traceability.</li>
+          <li>Agree acceptance criteria with compliance before build starts.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-colour">
+      <h2 id="sg-colour">Colour</h2>
+      <p class="prose">
+        Deep navy matches the CV. The warm accent is used only for tags and artefact labels.{' '}
+        <strong>Proposed warm accent, for owner approval:</strong> burnt orange.
+      </p>
+      {
+        (['light', 'dark'] as const).map((mode) => (
+          <div class="swatch-set">
+            <h3>{mode === 'light' ? 'Light' : 'Dark'}</h3>
+            <ul class="swatches">
+              {Object.entries(palette[mode]).map(([name, hex]) => (
+                <li>
+                  <span class="swatch" style={`background:${hex}`} />
+                  <code>--{name}</code> <span class="muted">{hex}</span>
+                </li>
+              ))}
+            </ul>
+            <div class="table-wrap">
+              <table>
+                <caption>Contrast, {mode} theme</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Use</th>
+                    <th scope="col">Pair</th>
+                    <th scope="col">Ratio</th>
+                    <th scope="col">Needs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pairs.map((p) => {
+                    const ratio = contrast(palette[mode][p.fg], palette[mode][p.bg]);
+                    return (
+                      <tr>
+                        <th scope="row">{p.use}</th>
+                        <td>
+                          <code>--{p.fg}</code> on <code>--{p.bg}</code>
+                        </td>
+                        <td>{ratio.toFixed(1)}:1</td>
+                        <td>{p.min > 1 ? `${p.min}:1` : 'No minimum'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <section aria-labelledby="sg-actions">
+      <h2 id="sg-actions">Buttons and tags</h2>
+      <div class="actions">
+        <a class="button button--primary" href="#sg-cards">View my work</a>
+        <a class="button button--secondary" href={site.defaultCv}>Download CV</a>
+      </div>
+      <ul class="tags sg-gap" aria-label="Tags">
+        <li class="tag">Banking</li>
+        <li class="tag">AI product</li>
+        <li class="tag">Requirements</li>
+        <li class="tag">Process</li>
+        <li class="tag">Data</li>
+        <li class="tag">AI governance</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="sg-proof">
+      <h2 id="sg-proof">Proof strip</h2>
+      <ul class="proof-strip">
+        <li>CBAP and PSPO II certified</li>
+        <li>First bank to comply with a new CBN limits circular, in 4 weeks</li>
+        <li>₦268.36M deposits mobilised in 6 months (Beta 2.0)</li>
+        <li>10,000+ app downloads (GPT Investor)</li>
+        <li>Prompt-injection tested AI product, live (Aimery)</li>
+      </ul>
+      <p class="small muted">
+        TODO(P2): the naira sign falls back to a system font here, because it is outside the Latin subset. P2 adds a small
+        naira-only font file rather than the 85 KB extended subset.
+      </p>
+    </section>
+
+    <section aria-labelledby="sg-cards">
+      <h2 id="sg-cards">Cards</h2>
+      <ul class="card-grid">
+        <li>
+          <Card
+            title="From CBN circular to live limits in 4 weeks"
+            href="#sg-cards"
+            summary="Live in 4 weeks, making the Bank the first to comply."
+            tags={['Banking', 'Requirements']}
+            figure="4 weeks"
+          />
+        </li>
+        <li>
+          <Card
+            title="Specifying an AI assistant, then trying to break it"
+            href="#sg-cards"
+            summary="Injected postings scored back in the clean range after the fix."
+            tags={['AI product', 'AI governance']}
+            figure="79 to 80 after the fix"
+          />
+        </li>
+        <li>
+          <Card
+            title="Turning a prototype's failures into a product's requirements"
+            href="#sg-cards"
+            summary="300 test emails sent with 0 errors; $0 running cost."
+            tags={['AI product', 'Requirements']}
+            figure="100+ backlog items"
+          />
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="sg-callout">
+      <h2 id="sg-callout">At a glance box</h2>
+      <div class="callout">
+        <h3 class="h4">At a glance</h3>
+        <ul>
+          <li><strong>Problem:</strong> a new CBN circular set new transaction limits for agent banking.</li>
+          <li><strong>My role:</strong> Business Analyst &amp; Project Manager, Financial Inclusion.</li>
+          <li><strong>What I produced:</strong> functional requirements from the circular.</li>
+          <li><strong>Outcome:</strong> live in 4 weeks, the first bank to comply.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="sg-figure">
+      <h2 id="sg-figure">Figure</h2>
+      <Figure id="fig-how-i-work" caption="How I work: the five stages of the BA lifecycle." label="Simplified">
+        <svg class="flow" viewBox="0 0 900 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          {
+            steps.map((s, i) => (
+              <g transform={`translate(${i * 180}, 20)`}>
+                <rect class="flow__box" x="0" y="0" width="150" height="80" rx="6" />
+                <text class="flow__num" x="75" y="32" text-anchor="middle">{i + 1}</text>
+                <text class="flow__label" x="75" y="58" text-anchor="middle">{s.step}</text>
+                {i < steps.length - 1 && <path class="flow__arrow" d="M154 40 H174 m-6 -6 l6 6 l-6 6" />}
+              </g>
+            ))
+          }
+        </svg>
+        <ol slot="description">
+          {steps.map((s) => <li>{s.step}: {s.line}.</li>)}
+        </ol>
+      </Figure>
+    </section>
+
+    <section aria-labelledby="sg-table">
+      <h2 id="sg-table">Table</h2>
+      <div class="table-wrap prose">
+        <table>
+          <caption>Prompt injection test: fit scores for a job posting (Aimery)</caption>
+          <thead>
+            <tr>
+              <th scope="col">Posting</th>
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Clean posting</th><td>76 to 79</td></tr>
+            <tr><th scope="row">Injected, before fix</th><td>83 to 84</td></tr>
+            <tr><th scope="row">Injected, after fix</th><td>79 to 80</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .swatch-set + .swatch-set {
+    margin-top: var(--space-6);
+  }
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+  .swatches li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--step--1);
+  }
+  .swatch {
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .sg-gap {
+    margin-top: var(--space-5);
+  }
+  .h4 {
+    font-size: var(--step-1);
+  }
+  .flow__box {
+    fill: var(--bg);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .flow__num {
+    fill: var(--warm);
+    font: 600 14px var(--font-sans);
+  }
+  .flow__label {
+    fill: var(--text);
+    font: 600 18px var(--font-serif);
+  }
+  .flow__arrow {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+</style>

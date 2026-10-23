@@ -1,0 +1,15 @@
+---
+// Minimal root page for P1 (owner decision 2026-10-23). P2 builds the full page from SPEC 4.0.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSite } from '../lib/site';
+
+const site = await getSite();
+---
+
+<BaseLayout title={site.name} description={`${site.rootLine} ${site.rootIntro}`}>
+  <div class="container">
+    <h1>{site.name}</h1>
+    <p class="lead">{site.rootLine}</p>
+    <p class="prose">{site.rootIntro}</p>
+  </div>
+</BaseLayout>

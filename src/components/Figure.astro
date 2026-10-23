@@ -1,0 +1,25 @@
+---
+// Accessible artefact wrapper (SPEC 7): a figure with a caption and a text walk-through
+// that the diagram references with aria-describedby. Put the SVG in the default slot and
+// the walk-through in the "description" slot.
+interface Props {
+  id: string;
+  caption: string;
+  /** "Illustrative" or "Simplified" for sanitised artefacts. */
+  label?: 'Illustrative' | 'Simplified' | 'Illustrative, simplified';
+}
+
+const { id, caption, label } = Astro.props;
+---
+
+<figure class="figure">
+  <div class="figure__body" role="img" aria-labelledby={`${id}-caption`} aria-describedby={`${id}-desc`} tabindex="0">
+    <slot />
+  </div>
+  <figcaption id={`${id}-caption`}>
+    {label && <span class="figure__label">{label}. </span>}{caption}
+  </figcaption>
+  <div id={`${id}-desc`} class="visually-hidden">
+    <slot name="description" />
+  </div>
+</figure>

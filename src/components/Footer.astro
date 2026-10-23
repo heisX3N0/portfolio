@@ -1,0 +1,51 @@
+---
+import { getLastUpdated } from '../lib/site';
+
+interface Props {
+  site: { email: string; linkedin: string; github: string };
+}
+
+const { site } = Astro.props;
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <ul class="site-footer__links">
+      <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+      <li><a href={site.linkedin}>LinkedIn</a></li>
+      <li><a href={site.github}>GitHub</a></li>
+    </ul>
+    <p class="small muted">
+      Last updated {getLastUpdated()} ·{' '}
+      <a href="/about/#how-this-site-was-built">Built from a spec with Claude Code</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding-block: var(--space-6);
+  }
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+  }
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .site-footer p {
+    margin: 0;
+  }
+  .site-footer a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+</style>
