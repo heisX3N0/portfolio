@@ -56,6 +56,12 @@ test('dash check catches em and en dashes in visible text only', () => {
   assert.deepEqual(findDashes('<style>/* — */</style><p>Mar 2024 to Present</p>'), []);
 });
 
+test('dash check catches named entities and SVG text', () => {
+  assert.equal(findDashes('<p>a &mdash; b</p>').length, 1);
+  assert.equal(findDashes('<p>2024&ndash;25</p>').length, 1);
+  assert.equal(findDashes('<svg><text x="0" y="0">Step 1 – Discover</text></svg>').length, 1);
+});
+
 test('sitemap parser reads every loc', () => {
   assert.deepEqual(sitemapUrls('<url><loc>https://x/</loc></url><url><loc>https://x/a/</loc></url>'), ['https://x/', 'https://x/a/']);
 });

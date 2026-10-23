@@ -52,16 +52,17 @@ export function findBrokenLinks(distDir, pending = PENDING_PATHS) {
   return broken;
 }
 
-// Text a visitor can read: tags, scripts, styles and comments removed, entities decoded.
+const NAMED = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", mdash: '—', ndash: '–', minus: '−', hellip: '…' };
+
+// Text a visitor can read, including SVG <text> in diagrams: tags, scripts, styles and comments removed, entities decoded.
 export function visibleText(html) {
   return html
     .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<(script|style|svg)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
+    .replace(/&([a-z]+);/gi, (m, name) => NAMED[name.toLowerCase()] ?? m)
     .replace(/\s+/g, ' ');
 }
 

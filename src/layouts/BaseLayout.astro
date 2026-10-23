@@ -10,11 +10,13 @@ interface Props {
   description: string;
   /** The CV the header links to. Role pages pass their own; elsewhere the default (SPEC 3). */
   cvFile?: string;
+  /** False on pages with no real URL of their own (the 404 page). */
+  canonical?: boolean;
 }
 
 const site = await getSite();
-const { title, description, cvFile = site.defaultCv } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const { title, description, cvFile = site.defaultCv, canonical: hasCanonical = true } = Astro.props;
+const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undefined;
 ---
 
 <!doctype html>
@@ -24,7 +26,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />

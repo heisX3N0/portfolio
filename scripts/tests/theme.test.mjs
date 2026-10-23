@@ -9,6 +9,7 @@ const source = readFileSync(new URL('../../src/scripts/theme.js', import.meta.ur
 function run({ storage, prefersDark = false }) {
   const attrs = {};
   const listeners = {};
+  const media = { matches: prefersDark, addEventListener(_type, fn) { media.onchange = fn; } };
   const button = {
     hidden: true,
     attrs: {},
@@ -23,10 +24,10 @@ function run({ storage, prefersDark = false }) {
     querySelector: () => button,
     addEventListener(type, fn) { listeners[type] = fn; },
   };
-  const window = { localStorage: storage, matchMedia: () => ({ matches: prefersDark }) };
+  const window = { localStorage: storage, matchMedia: () => media };
   runInNewContext(source, { window, document });
   listeners.DOMContentLoaded?.();
-  return { attrs, button };
+  return { attrs, button, media };
 }
 
 const throwing = {
@@ -51,6 +52,19 @@ test('ignores a stored value that is not a theme', () => {
 test('follows the system preference when nothing is stored', () => {
   assert.equal(run({ storage: { getItem: () => null, setItem() {} }, prefersDark: true }).attrs['data-theme'], 'dark');
   assert.equal(run({ storage: { getItem: () => null, setItem() {} } }).attrs['data-theme'], 'light');
+});
+
+test('follows a live system change only while no choice is stored', () => {
+  const free = run({ storage: { getItem: () => null, setItem() {} } });
+  assert.equal(typeof free.media.onchange, 'function', 'no change listener');
+  free.media.matches = true;
+  free.media.onchange();
+  assert.equal(free.attrs['data-theme'], 'dark');
+
+  const chosen = run({ storage: { getItem: () => 'light', setItem() {} } });
+  chosen.media.matches = true;
+  chosen.media.onchange?.();
+  assert.equal(chosen.attrs['data-theme'], 'light');
 });
 
 test('a stored choice wins over the system preference and is saved on toggle', () => {

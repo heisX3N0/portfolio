@@ -67,6 +67,14 @@ test('header and footer carry the global links', () => {
   }
 });
 
+test('canonical matches each page, and the 404 page has none', () => {
+  for (const p of pages) {
+    const canonical = p.html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+    if (p.path === '/404') assert.equal(canonical, undefined, '404 has a canonical');
+    else assert.equal(canonical, `https://boluwatife.olapade.site${p.path}`, p.path);
+  }
+});
+
 test('404 links to Home, Work and the BA role page', () => {
   const page = pages.find((p) => p.path === '/404');
   assert.ok(page, '404.html missing');

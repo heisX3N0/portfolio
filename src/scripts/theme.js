@@ -19,8 +19,22 @@
     if (button) button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
   }
 
-  var saved = stored();
-  apply(saved === 'dark' || saved === 'light' ? saved : preferred());
+  function chosen() {
+    var saved = stored();
+    return saved === 'dark' || saved === 'light' ? saved : null;
+  }
+
+  apply(chosen() || preferred());
+
+  // Follow a live system change until the visitor picks a theme themselves.
+  if (window.matchMedia) {
+    var media = window.matchMedia('(prefers-color-scheme: dark)');
+    if (media.addEventListener) {
+      media.addEventListener('change', function () {
+        if (!chosen()) apply(preferred());
+      });
+    }
+  }
 
   document.addEventListener('DOMContentLoaded', function () {
     var button = document.querySelector('[data-theme-toggle]');
