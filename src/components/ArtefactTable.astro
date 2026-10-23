@@ -1,0 +1,43 @@
+---
+// A table artefact (SPEC 7): a real table with a caption and th scope, never inside a role="img" wrapper.
+// Tables with four or more columns keep a readable width and scroll inside their wrapper on a phone, never the page;
+// only those wrappers are named, focusable regions, so keyboard users can scroll them. The <caption> would scroll out of view
+// with the table, so sighted readers get the same words above the scroll area and screen readers get the caption.
+import type { Artefact } from '../lib/schemas';
+
+interface Props {
+  artefact: Extract<Artefact, { kind: 'table' }>;
+}
+
+const { id, caption, label, columns, rows } = Astro.props.artefact;
+const wide = columns.length >= 4;
+---
+
+<figure class:list={['artefact-table', { 'artefact-table--compact': !wide }]}>
+  <p class="artefact-table__caption" aria-hidden="true">
+    {label && <span class="figure__label">{label}. </span>}{caption}
+  </p>
+  {wide && <p class="artefact-table__hint" aria-hidden="true">Scroll the table sideways to see every column.</p>}
+  <div class="table-wrap" role={wide ? 'region' : undefined} aria-labelledby={wide ? `${id}-caption` : undefined} tabindex={wide ? 0 : undefined}>
+    <table class:list={[{ 'table--wide': wide }]}>
+      <caption id={`${id}-caption`} class="visually-hidden">
+        {label && `${label}. `}{caption}
+      </caption>
+      <thead>
+        <tr>{columns.map((c) => <th scope="col">{c}</th>)}</tr>
+      </thead>
+      <tbody>
+        {
+          rows.map(([head, ...cells]) => (
+            <tr>
+              <th scope="row">{head}</th>
+              {cells.map((c) => (
+                <td>{c}</td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</figure>

@@ -1,6 +1,6 @@
 # Portfolio
 
-Source for `boluwatife.olapade.site`: a static Astro site built from [SPEC.md](SPEC.md). Editing content and replacing a CV are below; the full owner guide (adding a case study, the headshot, deploying) arrives in P5.
+Source for `boluwatife.olapade.site`: a static Astro site built from [SPEC.md](SPEC.md). Editing content, adding a case study and replacing a CV are below; the rest of the owner guide (the headshot, deploying) arrives in P5.
 
 ## Run it locally
 
@@ -26,7 +26,7 @@ Every word on the site lives in `src/content/`. Edit a file, push, and the site 
 | `site.yaml` | Name, root line and introduction, the root page's 3 selected case studies, email, LinkedIn, GitHub, Substack, location, default CV, headshot switch | Every page |
 | `roles/business-analyst.md` | The BA role page: title (must match the CV), positioning and supporting lines, proof strip, "How I work", tools, featured case studies, CV file, contact line | `/business-analyst/` |
 | `roles/project-manager.md`, `roles/product-manager.md` | `published: false` until each role's spec addendum and CV exist | Nowhere |
-| `work/*.md` | One case study each. For now, only the card: title, one-line outcome, tags, figure | Role page and `/` cards |
+| `work/*.md` | One case study each: the card (title, one-line outcome, tags, figure) and the page (metadata, At a glance, the body, artefacts, outcome, build notes, lessons, further reading) | `/work/<slug>/`, `/work/`, role page and `/` cards |
 | `about.md` | The bio (below the `---` lines), "How this site was built", education | `/about/` |
 | `experience.yaml` | The timeline: role, organisation, dates, 2 to 3 highlights | `/about/` |
 | `certifications.yaml` | Name, issuer and badge link | `/about/` |
@@ -38,7 +38,23 @@ Rules the content must follow (SPEC.md): every number must be in SPEC 6.2; no em
 - **YAML text with a colon and a space** (`like: this`) must go in quotes, or on the next line after `>-` as in `about.md`.
 - **Role pages:** a role file with `published: false` is not built, linked or listed. To publish one, fill in every field as in `business-analyst.md` (the build says which are missing) and set `published: true`. Role pages never link to each other.
 - **"How I work" examples:** a step's `example` is a case study file name (without `.md`). Its "Example:" line shows only while that case study is published.
-- **Case studies:** `draft: true` keeps one out of the live site. P3 adds the case study pages; until then the cards link to pages that don't exist yet.
+- **Case studies:** `draft: true` keeps one out of the live site. `order` sets the order on `/work/` and the previous and next links. See "Add a case study" below.
+
+## Add a case study
+
+Copy a file in `src/content/work/` (`closa-cbn-compliance.md` is a short one), rename it to the new slug, and edit it. Above the second `---` line is the frontmatter; below it is the body.
+
+- **The body** has three `##` sections, in this order: `Context`, `The problem`, `What I did`. The page adds the rest (At a glance, Artefacts, Outcome, What I learned, previous and next).
+- **`glance`:** the four At a glance lines: `problem`, `role`, `produced`, `outcome`.
+- **`outcome`** (1 to 3 paragraphs), **`learned`** (2 to 3 bullets), and the optional **`buildNotes`** and **`furtherReading`**. In `outcome`, `buildNotes` and `learned`, `[text](https://...)` becomes a link.
+- **`artefacts`** (at least one). Each has an `id` (unique in the file), a `caption`, and a `label` (`Illustrative`, `Simplified` or `Illustrative, simplified`) when it is sanitised. The first artefact's kind sets the card's thumbnail. The kinds:
+  - `table`: `columns` and `rows`; the first cell of each row is its heading. Four or more columns scroll sideways on a phone.
+  - `flow`: 2 to 7 `steps` in order, each a `label` with an optional `note` and `highlight: true`.
+  - `funnel`: the same kind of steps, drawn narrowing down the page.
+  - `decision`: `checks` (each a `question` and what happens if `yes`), tried in order, then `otherwise`.
+  - `swimlane`: `lanes`, then one or two `states`, each a `title` and 5 to 7 steps that name their `lane`.
+
+Diagrams are drawn at build time, wide and narrow, with a text description written from the same data, so there is nothing to draw by hand. Keep step labels to a few words: `pnpm test` fails a label that doesn't fit its box.
 
 ## Replace a CV
 

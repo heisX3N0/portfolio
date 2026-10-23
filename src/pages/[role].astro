@@ -3,7 +3,7 @@
 // Adding a role is a content task: a new file, no code. Role pages never link to each other (SPEC 2.4).
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
-import Card from '../components/Card.astro';
+import WorkCard from '../components/WorkCard.astro';
 import HowIWork from '../components/HowIWork.astro';
 import Writing from '../components/Writing.astro';
 import { getSite } from '../lib/site';
@@ -57,7 +57,7 @@ const cvTodo = missingCv(role.cvFile);
         {
           featured.map((w) => (
             <li>
-              <Card title={w.title} href={workHref(w.slug)} summary={w.summary} tags={w.tags} figure={w.headlineFigure} />
+              <WorkCard work={w} />
             </li>
           ))
         }

@@ -6,6 +6,8 @@ import Hero from '../components/Hero.astro';
 import ProofStrip from '../components/ProofStrip.astro';
 import Card from '../components/Card.astro';
 import Figure from '../components/Figure.astro';
+import ArtefactTable from '../components/ArtefactTable.astro';
+import Thumbnail from '../components/Thumbnail.astro';
 import Icon from '../components/Icon.astro';
 import HowIWork from '../components/HowIWork.astro';
 import { getEntry } from 'astro:content';
@@ -19,6 +21,25 @@ const entry = await getEntry('roles', 'business-analyst');
 if (!entry?.data.published) throw new Error('styleguide needs the published business-analyst role');
 const ba = { ...entry.data, proof: entry.data.proofStrip };
 const steps = ba.howIWork;
+// Artefact samples, from approved copy: the How I work stages (labels only) and the Aimery injection scores (SPEC 5.3).
+const flowSample = {
+  kind: 'flow' as const,
+  id: 'fig-how-i-work',
+  caption: 'How I work: the five stages of the BA lifecycle.',
+  label: 'Simplified' as const,
+  steps: steps.map((s) => ({ label: s.step, highlight: false })),
+};
+const tableSample = {
+  kind: 'table' as const,
+  id: 'sg-injection',
+  caption: 'Prompt injection test: fit scores for a job posting (Aimery).',
+  columns: ['Posting', 'Fit score'],
+  rows: [
+    ['Clean posting', '76 to 79'],
+    ['Injected, before the fix', '83 to 84'],
+    ['Injected, after the fix', '79 to 80'],
+  ],
+};
 ---
 
 <BaseLayout
@@ -194,7 +215,7 @@ const steps = ba.howIWork;
 
     <section aria-labelledby="sg-cards">
       <h2 id="sg-cards">Cards</h2>
-      <p class="muted small">Figure first, then title, one-line outcome and tags. The first card shows the artefact thumbnail slot that P3 fills.</p>
+      <p class="muted small">A sketch of the case study's first artefact, then the figure, title, one-line outcome and tags.</p>
       <ul class="card-grid">
         <li>
           <Card
@@ -204,14 +225,7 @@ const steps = ba.howIWork;
             tags={['Banking', 'Requirements']}
             figure="4 weeks"
           >
-            <svg slot="thumbnail" class="sg-thumb" viewBox="0 0 300 90" aria-hidden="true" focusable="false">
-              <rect class="sg-thumb__lane" x="0" y="0" width="300" height="44" />
-              <rect class="sg-thumb__lane" x="0" y="46" width="300" height="44" />
-              <rect class="sg-thumb__box" x="16" y="10" width="64" height="24" rx="4" />
-              <rect class="sg-thumb__box" x="118" y="56" width="64" height="24" rx="4" />
-              <rect class="sg-thumb__box" x="220" y="10" width="64" height="24" rx="4" />
-              <path class="sg-thumb__arrow" d="M80 22 H100 V68 H118 M182 68 H200 V22 H220" />
-            </svg>
+            <Thumbnail slot="thumbnail" kind="table" />
           </Card>
         </li>
         <li>
@@ -221,7 +235,9 @@ const steps = ba.howIWork;
             summary="Injected postings scored back in the clean range after the fix."
             tags={['AI product', 'AI governance']}
             figure="79 to 80"
-          />
+          >
+            <Thumbnail slot="thumbnail" kind="flow" />
+          </Card>
         </li>
         <li>
           <Card
@@ -230,7 +246,9 @@ const steps = ba.howIWork;
             summary="300 test emails sent with 0 errors; $0 running cost."
             tags={['AI product', 'Requirements']}
             figure="100+ backlog items"
-          />
+          >
+            <Thumbnail slot="thumbnail" kind="table" />
+          </Card>
         </li>
       </ul>
     </section>
@@ -250,42 +268,14 @@ const steps = ba.howIWork;
 
     <section aria-labelledby="sg-figure">
       <h2 id="sg-figure">Figure</h2>
-      <Figure id="fig-how-i-work" caption="How I work: the five stages of the BA lifecycle." label="Simplified">
-        <svg class="flow" viewBox="0 0 900 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-          {
-            steps.map((s, i) => (
-              <g transform={`translate(${i * 180}, 20)`}>
-                <rect class="flow__box" x="0" y="0" width="150" height="80" rx="6" />
-                <text class="flow__num" x="75" y="32" text-anchor="middle">{i + 1}</text>
-                <text class="flow__label" x="75" y="58" text-anchor="middle">{s.step}</text>
-                {i < steps.length - 1 && <path class="flow__arrow" d="M154 40 H174 m-6 -6 l6 6 l-6 6" />}
-              </g>
-            ))
-          }
-        </svg>
-        <ol slot="description">
-          {steps.map((s) => <li>{s.step}: {s.line}.</li>)}
-        </ol>
-      </Figure>
+      <p class="muted small">Drawn at build time, wide and narrow; the figure shows the one that fits, so it never scrolls sideways.</p>
+      <Figure artefact={flowSample} />
     </section>
 
     <section aria-labelledby="sg-table">
       <h2 id="sg-table">Table</h2>
-      <div class="table-wrap prose">
-        <table>
-          <caption>Prompt injection test: fit scores for a job posting (Aimery)</caption>
-          <thead>
-            <tr>
-              <th scope="col">Posting</th>
-              <th scope="col">Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><th scope="row">Clean posting</th><td>76 to 79</td></tr>
-            <tr><th scope="row">Injected, before fix</th><td>83 to 84</td></tr>
-            <tr><th scope="row">Injected, after fix</th><td>79 to 80</td></tr>
-          </tbody>
-        </table>
+      <div class="prose">
+        <ArtefactTable artefact={tableSample} />
       </div>
     </section>
 
@@ -373,36 +363,5 @@ const steps = ba.howIWork;
   }
   .h4 {
     font-size: var(--step-1);
-  }
-  .sg-thumb__lane {
-    fill: var(--surface);
-  }
-  .sg-thumb__box {
-    fill: var(--bg);
-    stroke: var(--accent);
-    stroke-width: 2;
-  }
-  .sg-thumb__arrow {
-    fill: none;
-    stroke: var(--gold);
-    stroke-width: 2;
-  }
-  .flow__box {
-    fill: var(--bg);
-    stroke: var(--accent);
-    stroke-width: 2;
-  }
-  .flow__num {
-    fill: var(--gold);
-    font: 600 14px var(--font-sans);
-  }
-  .flow__label {
-    fill: var(--text);
-    font: 600 18px var(--font-serif);
-  }
-  .flow__arrow {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 2;
   }
 </style>

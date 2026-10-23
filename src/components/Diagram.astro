@@ -1,0 +1,45 @@
+---
+// One diagram layout (src/lib/diagrams.ts) as inline SVG, drawn at most 1:1 so its text never grows past the
+// page's. Decorative to assistive technology: the figure around it carries the name and the text walk-through.
+import type { Layout } from '../lib/diagrams';
+
+interface Props {
+  layout: Layout;
+  /** "wide" or "narrow": the figure shows one or the other by its own width. */
+  variant: 'wide' | 'narrow';
+}
+
+const { layout, variant } = Astro.props;
+---
+
+<svg
+  class={`diagram diagram--${variant}`}
+  viewBox={`0 0 ${layout.width} ${layout.height}`}
+  width={layout.width}
+  height={layout.height}
+  style={`max-width: ${layout.width}px`}
+  aria-hidden="true"
+  focusable="false"
+>
+  {layout.bands?.map((b) => <rect class={b.cls} x={b.x} y={b.y} width={b.w} height={b.h} />)}
+  {layout.paths.map((p) => <path class={p.cls} d={p.d} />)}
+  {
+    layout.boxes.map((b) => (
+      <g class={b.cls}>
+        <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="6" />
+        {b.lines.map((l) => (
+          <text class={l.cls} x={l.x} y={l.y} font-size={l.size} text-anchor={l.anchor}>
+            {l.text}
+          </text>
+        ))}
+      </g>
+    ))
+  }
+  {
+    layout.labels.map((l) => (
+      <text class={l.cls} x={l.x} y={l.y} font-size={l.size} text-anchor={l.anchor}>
+        {l.text}
+      </text>
+    ))
+  }
+</svg>

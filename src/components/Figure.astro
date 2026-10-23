@@ -1,25 +1,42 @@
 ---
-// Accessible artefact wrapper (SPEC 7): a figure with a caption and a text walk-through
-// that the diagram references with aria-describedby. Put the SVG in the default slot and
-// the walk-through in the "description" slot.
+// A diagram artefact (SPEC 7): a figure with a caption and a text walk-through that the diagram references with
+// aria-describedby. The diagram is drawn twice from the same data, wide and narrow, and the figure shows the one
+// that fits its own width, so it never scrolls sideways. role="img" makes the drawing one image to assistive
+// technology, which hides anything inside it: tables never go in here (they use ArtefactTable).
+import Diagram from './Diagram.astro';
+import { layouts, walkthrough } from '../lib/diagrams';
+import type { DiagramArtefact } from '../lib/schemas';
+
 interface Props {
-  id: string;
-  caption: string;
-  /** "Illustrative" or "Simplified" for sanitised artefacts. */
-  label?: 'Illustrative' | 'Simplified' | 'Illustrative, simplified';
+  artefact: DiagramArtefact;
 }
 
-const { id, caption, label } = Astro.props;
+const { artefact } = Astro.props;
+const { id, caption, label } = artefact;
+const { wide, narrow } = layouts(artefact);
+const groups = walkthrough(artefact);
 ---
 
 <figure class="figure">
-  <div class="figure__body" role="img" aria-labelledby={`${id}-caption`} aria-describedby={`${id}-desc`} tabindex="0">
-    <slot />
+  <div class="figure__body" role="img" aria-labelledby={`${id}-caption`} aria-describedby={`${id}-desc`}>
+    {wide.map((layout) => <Diagram layout={layout} variant="wide" />)}
+    {narrow.map((layout) => <Diagram layout={layout} variant="narrow" />)}
   </div>
   <figcaption id={`${id}-caption`}>
     {label && <span class="figure__label">{label}. </span>}{caption}
   </figcaption>
   <div id={`${id}-desc`} class="visually-hidden">
-    <slot name="description" />
+    {
+      groups.map((g) => (
+        <>
+          {g.title && <p>{g.title}</p>}
+          <ol>
+            {g.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ol>
+        </>
+      ))
+    }
   </div>
 </figure>

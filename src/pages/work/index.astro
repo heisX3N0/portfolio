@@ -1,0 +1,98 @@
+---
+// Case studies index (SPEC 4.2): every published case study, in order, with All, Banking and AI products filters.
+// The filters are plain links to targets on this page, and CSS (:target) hides the cards that don't match, so they
+// work without JavaScript. With no target, or #all, every card shows.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import { getSite } from '../../lib/site';
+import { getPublishedWork } from '../../lib/content';
+
+const site = await getSite();
+const work = await getPublishedWork();
+// Each filter matches one tag (SPEC 9.2 tags).
+const filters = [
+  { id: 'banking', name: 'Banking', tag: 'Banking' },
+  { id: 'ai-products', name: 'AI products', tag: 'AI product' },
+] as const;
+const filterIds = (tags: string[]) => filters.filter((f) => tags.includes(f.tag)).map((f) => f.id).join(' ');
+---
+
+<BaseLayout title={`Work | ${site.name}`} description="Case studies from banking and AI products: the problem, what I did, the artefacts and the outcome.">
+  <div class="container">
+    <h1>Work</h1>
+    <p class="lead">Case studies from banking and AI products: the problem, what I did, the artefacts and the outcome.</p>
+
+    <section class="work-index page-section" aria-labelledby="work-heading">
+      <h2 id="work-heading" class="visually-hidden">Case studies</h2>
+      <span id="all" class="filter-target"></span>
+      {filters.map((f) => <span id={f.id} class="filter-target" />)}
+      <nav class="filters" aria-label="Filter case studies">
+        <ul>
+          <li><a class="chip" href="#all">All</a></li>
+          {
+            filters.map((f) => (
+              <li>
+                <a class="chip" href={`#${f.id}`}>{f.name}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <ul class="card-grid">
+        {
+          work.map((w) => (
+            <li data-filter={filterIds(w.tags)}>
+              <WorkCard work={w} />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .filter-target {
+    display: block;
+    scroll-margin-top: var(--space-6);
+  }
+  .filters ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 1.5px solid var(--accent);
+    border-radius: 999px;
+    color: var(--link);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .chip:hover {
+    text-decoration: underline;
+  }
+  /* The chosen filter: filled, with a tick, so it never relies on colour alone. */
+  .work-index:not(:has(.filter-target:target:not(#all))) .chip[href='#all'],
+  #banking:target ~ .filters .chip[href='#banking'],
+  #ai-products:target ~ .filters .chip[href='#ai-products'] {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .work-index:not(:has(.filter-target:target:not(#all))) .chip[href='#all']::before,
+  #banking:target ~ .filters .chip[href='#banking']::before,
+  #ai-products:target ~ .filters .chip[href='#ai-products']::before {
+    content: '✓ ';
+    white-space: pre;
+  }
+  #banking:target ~ .card-grid > li:not([data-filter~='banking']),
+  #ai-products:target ~ .card-grid > li:not([data-filter~='ai-products']) {
+    display: none;
+  }
+</style>

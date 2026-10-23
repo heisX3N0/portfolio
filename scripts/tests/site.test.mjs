@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { listHtmlFiles, pagePath, findBrokenLinks, findPhoneNumbers, findDashes, findMissingFragments, sitemapUrls, findRoleLinks, readRoles, visibleText } from '../lib/checks.mjs';
+import { listHtmlFiles, pagePath, findBrokenLinks, findPhoneNumbers, findDashes, findMissingFragments, sitemapUrls, findRoleLinks, readRoles, visibleText, findLiveClaims, findUnlabelledProjections, PENDING_PATHS } from '../lib/checks.mjs';
 
 const dist = fileURLToPath(new URL('../../dist/', import.meta.url));
 const built = existsSync(join(dist, 'index.html'));
@@ -234,4 +234,145 @@ test('About: timeline titles and dates as on the CV, certifications linked, educ
   assert.match(html, /href="https:\/\/github\.com\/heisX3N0\/portfolio"/);
   assert.match(html, /href="https:\/\/github\.com\/heisX3N0\/portfolio\/blob\/main\/SPEC\.md"/);
   assert.equal((html.match(/<time datetime=/g) || []).length, 7, 'full writing list');
+});
+
+// P3: case studies (SPEC 4.2, 4.3, 5 and 7). Negative cases first.
+const STUDIES = [
+  'closa-cbn-compliance',
+  'performance-buddy-access-control',
+  'aimery-ai-requirements',
+  'merge-x-requirements-from-failure',
+  'aggregator-onboarding-redesign',
+  'gpt-investor-discovery',
+];
+const study = (slug) => page(`/work/${slug}/`)?.html ?? '';
+const article = (html) => element(html, /<article[^>]*class="[^"]*\bcase\b/);
+const cards = (html) => [...html.matchAll(/<article class="card[^"]*"[\s\S]*?<\/article>/g)].map((m) => m[0]);
+
+test('Performance Buddy is never described as live, launched or piloted, on any page', () => {
+  assert.ok(study('performance-buddy-access-control'), 'Performance Buddy page not built');
+  // The previous and next links name other case studies ("From CBN circular to live limits"), so they don't count.
+  const own = article(study('performance-buddy-access-control')).replace(/<nav\b[\s\S]*?<\/nav>/g, ' ');
+  assert.deepEqual(findLiveClaims(visibleText(own)), []);
+  const buddyCards = pages.flatMap((p) => cards(p.html).filter((c) => c.includes('/work/performance-buddy-access-control/')).map((c) => ({ p, c })));
+  assert.ok(buddyCards.length >= 2, 'Performance Buddy cards not found on /work/ and the BA page');
+  for (const { p, c } of buddyCards) assert.deepEqual(findLiveClaims(visibleText(c)), [], p.path);
+});
+
+test('projected aggregator figures are labelled as projected on every page', () => {
+  assert.match(visibleText(study('aggregator-onboarding-redesign')), /2M\+/, 'aggregator page has no projection');
+  for (const p of pages) assert.deepEqual(findUnlabelledProjections(visibleText(p.html)), [], p.path);
+});
+
+test('Performance Buddy shows no internal detail: fictional placeholders only, no email address', () => {
+  const text = visibleText(article(study('performance-buddy-access-control')));
+  assert.match(text, /Region A/);
+  assert.match(text, /Branch 001/);
+  assert.deepEqual([...text.matchAll(/[\w.+-]+@[\w-]+\.[\w.]+/g)].map((m) => m[0]), []);
+});
+
+test('tables are never inside a role="img" wrapper, which hides them from screen readers', () => {
+  for (const p of pages) {
+    for (const m of p.html.matchAll(/<[a-z]+[^>]*role="img"/g)) assert.doesNotMatch(element(p.html.slice(m.index), /</), /<table\b/, p.path);
+  }
+});
+
+test('every case study has an artefact; each diagram has a caption and a text alternative, each table a caption and th scope', () => {
+  for (const slug of STUDIES) {
+    const html = article(study(slug));
+    assert.ok(html, `${slug} not built`);
+    const diagrams = [...html.matchAll(/<div[^>]*role="img"[^>]*>/g)].map((m) => m[0]);
+    const tables = [...html.matchAll(/<table\b[\s\S]*?<\/table>/g)].map((m) => m[0]);
+    assert.ok(diagrams.length + tables.length >= 1, `${slug}: no artefact`);
+    for (const d of diagrams) {
+      const labelled = d.match(/aria-labelledby="([^"]+)"/)?.[1];
+      const described = d.match(/aria-describedby="([^"]+)"/)?.[1];
+      assert.ok(labelled && described, `${slug}: ${d}`);
+      assert.match(html, new RegExp(`<figcaption[^>]*id="${labelled}"`), `${slug}: caption`);
+      assert.ok(visibleText(element(html, new RegExp(`<[a-z]+[^>]*id="${described}"`))).trim().length > 40, `${slug}: empty text alternative`);
+    }
+    for (const t of tables) {
+      assert.match(t, /<caption\b/, `${slug}: table caption`);
+      assert.match(t, /<th scope="col"/, `${slug}: column headers`);
+      assert.match(t, /<th scope="row"/, `${slug}: row headers`);
+    }
+  }
+});
+
+test('sanitised artefacts carry their label (SPEC 5 and 7)', () => {
+  for (const [slug, label] of [
+    ['closa-cbn-compliance', /Illustrative, simplified\./],
+    ['performance-buddy-access-control', /Illustrative/],
+    ['aggregator-onboarding-redesign', /Simplified\./],
+    ['merge-x-requirements-from-failure', /Simplified\./],
+  ]) {
+    assert.match(visibleText(article(study(slug))), label, slug);
+  }
+});
+
+test('each case study follows the template, in order (SPEC 4.3)', () => {
+  const want = ['At a glance', 'Context', 'The problem', 'What I did', 'Artefacts', 'Outcome', 'What I learned'];
+  for (const slug of STUDIES) {
+    const html = article(study(slug));
+    const h2 = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => visibleText(m[1]).trim());
+    assert.deepEqual(h2.filter((h) => want.includes(h)), want, `${slug}: ${h2}`);
+    assert.equal((html.match(/<h1\b/g) || []).length, 1, `${slug}: h1`);
+    assert.match(html, /class="case__outcome"/, `${slug}: one-line outcome`);
+    assert.match(html, /<dl class="case__meta"/, `${slug}: metadata row`);
+    const learned = element(html, /<section[^>]*aria-labelledby="learned-heading"/);
+    const bullets = (learned.match(/<li\b/g) || []).length;
+    assert.ok(bullets >= 2 && bullets <= 3, `${slug}: ${bullets} learned bullets`);
+  }
+});
+
+// The floor is 450, not SPEC 4.3's 600: the owner accepted shorter studies where the fact sheet is thin (2026-10-23).
+test('case study prose is 450 to 900 words, artefacts and navigation not counted (SPEC 4.3 target: 600 to 900)', () => {
+  for (const slug of STUDIES) {
+    const prose = article(study(slug))
+      .replace(/<figure\b[\s\S]*?<\/figure>/g, ' ')
+      .replace(/<nav\b[\s\S]*?<\/nav>/g, ' ');
+    const words = visibleText(prose).split(' ').filter((w) => /[a-z0-9]/i.test(w)).length;
+    assert.ok(words >= 450 && words <= 900, `${slug}: ${words} words`);
+  }
+});
+
+test('previous and next follow the case study order, with Back to all work', () => {
+  for (const [i, slug] of STUDIES.entries()) {
+    const nav = element(study(slug), /<nav[^>]*aria-label="More case studies"/);
+    assert.ok(nav, `${slug}: no case study navigation`);
+    assert.match(nav, /href="\/work\/"[^>]*>Back to all work/, slug);
+    assert.deepEqual(workSlugs(nav), [STUDIES[i - 1], STUDIES[i + 1]].filter(Boolean), slug);
+  }
+});
+
+test('the GPT Investor case study ends with its further reading (SPEC 5.5)', () => {
+  const text = visibleText(article(study('gpt-investor-discovery')));
+  assert.match(text, /The Problem with Retail Investing/);
+  assert.match(text, /Introducing Top Picks/);
+});
+
+test('/work/ lists every case study in order, with All, Banking and AI products filters that are plain links', () => {
+  const html = page('/work/')?.html ?? '';
+  assert.ok(html, '/work/ not built');
+  assert.deepEqual(workSlugs(element(html, /<ul[^>]*class="card-grid/)), STUDIES);
+  const chips = element(html, /<nav[^>]*aria-label="Filter case studies"/);
+  for (const [href, name] of [['#all', 'All'], ['#banking', 'Banking'], ['#ai-products', 'AI products']]) {
+    assert.match(chips, new RegExp(`href="${href}"[^>]*>${name}<`), name);
+  }
+  assert.doesNotMatch(html, /<script[^>]*\ssrc=/, 'filtering must not need a script file');
+});
+
+test('every case study card carries an artefact thumbnail', () => {
+  const workCards = pages
+    .filter((x) => x.path !== '/styleguide/')
+    .flatMap((p) => cards(p.html).filter((c) => /href="\/work\//.test(c)).map((c) => ({ p, c })));
+  // 3 on the root page, 6 on the BA page, 6 on /work/.
+  assert.ok(workCards.length >= 15, `${workCards.length} case study cards found`);
+  for (const { p, c } of workCards) assert.match(c, /class="card__thumb"[\s\S]*<svg/, p.path);
+});
+
+test('no case study page is pending any more, and all are in the sitemap', () => {
+  assert.deepEqual(PENDING_PATHS, []);
+  const work = allSitemapUrls().map((u) => new URL(u).pathname).filter((p) => p.startsWith('/work/')).sort();
+  assert.deepEqual(work, ['/work/', ...STUDIES.map((s) => `/work/${s}/`)].sort());
 });

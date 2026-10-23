@@ -1,0 +1,287 @@
+---
+// Case study page (SPEC 4.3), one per file in src/content/work/ (drafts left out of production builds). Every case
+// study uses this template, so a reader can scan any of them the same way: header, At a glance, the body (Context,
+// The problem, What I did), artefacts, outcome, lessons, and previous and next. Adding one is a content task.
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Figure from '../../components/Figure.astro';
+import ArtefactTable from '../../components/ArtefactTable.astro';
+import Linked from '../../components/Linked.astro';
+import { getSite } from '../../lib/site';
+import { getPublishedWorkEntries, workHref, type Work } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const entries = await getPublishedWorkEntries();
+  return entries.map((entry, i) => ({
+    params: { slug: entry.data.slug },
+    props: { entry, prev: entries[i - 1]?.data, next: entries[i + 1]?.data },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'work'>;
+  prev?: Work;
+  next?: Work;
+}
+
+const { entry, prev, next } = Astro.props;
+const w = entry.data;
+const { Content } = await render(entry);
+const site = await getSite();
+const meta = [
+  ['Role', w.role],
+  ['Organisation', w.organisation],
+  ['Period', w.period],
+  ...(w.team ? [['Team', w.team]] : []),
+];
+const glance = [
+  ['Problem', w.glance.problem],
+  ['My role', w.glance.role],
+  ['What I produced', w.glance.produced],
+  ['Outcome', w.glance.outcome],
+];
+---
+
+<BaseLayout title={`${w.title} | ${site.name}`} description={w.summary}>
+  <article class="container case">
+    <header class="case__header">
+      <p class="case__eyebrow"><a href="/work/">Work</a></p>
+      <h1>{w.title}</h1>
+      <p class="case__outcome">{w.summary}</p>
+      <dl class="case__meta">
+        {
+          meta.map(([term, value]) => (
+            <div>
+              <dt>{term}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))
+        }
+        <div>
+          <dt>Tags</dt>
+          <dd>
+            <ul class="tags">
+              {w.tags.map((tag) => (
+                <li class="tag">{tag}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      </dl>
+    </header>
+
+    <section class="callout case__glance" aria-labelledby="glance-heading">
+      <h2 id="glance-heading">At a glance</h2>
+      <dl>
+        {
+          glance.map(([term, value]) => (
+            <div>
+              <dt>{term}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <div class="prose case__body">
+      <Content />
+    </div>
+
+    <section class="case__section" aria-labelledby="artefacts-heading">
+      <h2 id="artefacts-heading">Artefacts</h2>
+      {w.artefacts.map((a) => (a.kind === 'table' ? <ArtefactTable artefact={a} /> : <Figure artefact={a} />))}
+    </section>
+
+    <section class="case__section prose" aria-labelledby="outcome-heading">
+      <h2 id="outcome-heading">Outcome</h2>
+      {
+        w.outcome.map((p) => (
+          <p>
+            <Linked text={p} />
+          </p>
+        ))
+      }
+      {
+        w.buildNotes && (
+          <aside class="case__notes" aria-label="Build notes">
+            <p class="case__notes-title">Build notes</p>
+            {w.buildNotes.map((n) => (
+              <p>
+                <Linked text={n} />
+              </p>
+            ))}
+          </aside>
+        )
+      }
+    </section>
+
+    <section class="case__section prose" aria-labelledby="learned-heading">
+      <h2 id="learned-heading">What I learned</h2>
+      <ul>
+        {
+          w.learned.map((l) => (
+            <li>
+              <Linked text={l} />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    {
+      w.furtherReading && (
+        <section class="case__section prose" aria-labelledby="reading-heading">
+          <h2 id="reading-heading">Further reading</h2>
+          <ul>
+            {w.furtherReading.map((r) => (
+              <li>
+                <a href={r.url}>{r.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <nav class="case__nav" aria-label="More case studies">
+      {
+        prev && (
+          <a class="case__nav-link" href={workHref(prev.slug)} rel="prev">
+            <span class="case__nav-dir">Previous</span>
+            {prev.title}
+          </a>
+        )
+      }
+      {
+        next && (
+          <a class="case__nav-link case__nav-link--next" href={workHref(next.slug)} rel="next">
+            <span class="case__nav-dir">Next</span>
+            {next.title}
+          </a>
+        )
+      }
+      <a class="case__nav-all" href="/work/">Back to all work</a>
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  /* Header: tight like the CV (SPEC 1.4). Title, outcome and metadata fit the first screen at 390x844. */
+  .case__eyebrow {
+    margin: 0 0 var(--space-2);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  .case h1 {
+    max-width: 24ch;
+    margin-bottom: var(--space-3);
+  }
+  .case__outcome {
+    max-width: var(--measure);
+    margin: 0 0 var(--space-5);
+    font-size: var(--step-1);
+    color: var(--muted);
+  }
+  .case__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    margin: 0;
+    padding-top: var(--space-4);
+    border-top: 3px solid var(--gold);
+    font-size: var(--step--1);
+  }
+  .case__meta dt {
+    color: var(--muted);
+  }
+  .case__meta dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  .case__glance {
+    margin-top: var(--space-7);
+  }
+  .case__glance h2 {
+    font-size: var(--step-1);
+  }
+  .case__glance dl {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .case__glance dt {
+    font-weight: 600;
+  }
+  .case__glance dd {
+    margin: 0;
+  }
+  .case__body {
+    margin-top: var(--space-7);
+  }
+  .case__body :global(h2),
+  .case__section h2 {
+    margin-top: var(--space-7);
+    font-size: var(--step-2);
+  }
+  .case__body :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .case__section {
+    margin-top: 0;
+  }
+  .case__section :global(figure) {
+    margin-bottom: var(--space-6);
+  }
+  .case__notes {
+    max-width: var(--measure);
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .case__notes p {
+    margin: 0;
+  }
+  .case__notes-title {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .case__nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--rule);
+  }
+  .case__nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .case__nav-link:hover {
+    border-color: var(--accent);
+  }
+  .case__nav-link--next {
+    text-align: right;
+  }
+  .case__nav-dir {
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .case__nav-all {
+    grid-column: 1 / -1;
+    justify-self: start;
+    font-weight: 600;
+  }
+</style>

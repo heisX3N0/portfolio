@@ -4,8 +4,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import Card from '../components/Card.astro';
+import WorkCard from '../components/WorkCard.astro';
 import { getSite } from '../lib/site';
-import { getPublishedRoles, getWork, pick, workHref } from '../lib/content';
+import { getPublishedRoles, getWork, pick } from '../lib/content';
 
 const site = await getSite();
 const roles = await getPublishedRoles();
@@ -45,7 +46,7 @@ const selected = pick(await getWork(), site.selectedWork, 'site.yaml selectedWor
         {
           selected.map((w) => (
             <li>
-              <Card title={w.title} href={workHref(w.slug)} summary={w.summary} tags={w.tags} figure={w.headlineFigure} />
+              <WorkCard work={w} />
             </li>
           ))
         }

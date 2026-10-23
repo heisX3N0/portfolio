@@ -139,3 +139,68 @@ test('every page transfers 200 KB or less (SPEC 9.4)', async () => {
   }
   assert.deepEqual(overBudget(bytes), [], JSON.stringify(bytes));
 });
+
+// P3: case studies (SPEC 1.4, 4.2 and 7).
+const studies = paths.filter((p) => /^\/work\/[a-z0-9-]+\/$/.test(p));
+
+test('no figure scrolls sideways at 360px', async () => {
+  for (const path of ['/styleguide/', ...studies]) {
+    await browser.open(origin + path, { width: 360, height: 740 });
+    const wide = await browser.evaluate(
+      `[...document.querySelectorAll('.figure__body')].filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.parentElement.querySelector('figcaption')?.textContent.trim())`,
+    );
+    assert.deepEqual(wide, [], path);
+  }
+  assert.equal(studies.length, 6, 'case studies built');
+});
+
+test('diagram text stays inside its box at 360px and 1366px', async () => {
+  assert.equal(studies.length, 6, 'case studies built');
+  for (const path of studies) {
+    for (const width of [360, 1366]) {
+      await browser.open(origin + path, { width, height: 800 });
+      const outside = await browser.evaluate(`(() => {
+        const out = [];
+        for (const g of document.querySelectorAll('svg .d-box, svg .d-lanehead')) {
+          if (!g.getClientRects().length) continue;
+          const box = g.querySelector('rect').getBoundingClientRect();
+          for (const t of g.querySelectorAll('text')) {
+            const r = t.getBoundingClientRect();
+            if (r.left < box.left - 0.5 || r.right > box.right + 0.5 || r.top < box.top - 0.5 || r.bottom > box.bottom + 0.5) out.push(t.textContent);
+          }
+        }
+        return out;
+      })()`);
+      assert.deepEqual(outside, [], `${path} at ${width}px`);
+    }
+  }
+});
+
+for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }]) {
+  test(`case study title, outcome and metadata in the first screen at ${size.width}x${size.height}`, async () => {
+    assert.equal(studies.length, 6, 'case studies built');
+    for (const path of studies) {
+      await browser.open(origin + path, size);
+      const items = {
+        h1: await browser.evaluate(rect('.case h1')),
+        outcome: await browser.evaluate(rect('.case__outcome')),
+        metadata: await browser.evaluate(rect('.case__meta')),
+      };
+      assert.deepEqual(outsideFirstScreen(items, size.height), [], `${path}: ${JSON.stringify(items)}`);
+    }
+  });
+}
+
+test('the /work/ filters show only the matching cards, with CSS alone', async () => {
+  // A query per filter makes each a fresh load: a hash-only change fires no load event.
+  const shown = async (hash) => {
+    await browser.open(`${origin}/work/?filter=${hash.slice(1)}${hash}`, { width: 1366, height: 768 });
+    return browser.evaluate(
+      `[...document.querySelectorAll('.card-grid > li')].filter((li) => li.offsetParent).map((li) => li.querySelector('h3 a').getAttribute('href').split('/')[2])`,
+    );
+  };
+  assert.deepEqual(await shown('#banking'), ['closa-cbn-compliance', 'performance-buddy-access-control', 'aggregator-onboarding-redesign']);
+  assert.deepEqual(await shown('#ai-products'), ['aimery-ai-requirements', 'merge-x-requirements-from-failure', 'gpt-investor-discovery']);
+  assert.equal((await shown('#all')).length, 6);
+  assert.equal((await shown('')).length, 6);
+});

@@ -23,11 +23,11 @@ Static Astro site built from `SPEC.md`. The spec is the source of truth for scop
 
 ## Design rules (direction B, P1.5; SPEC 8 v3.1)
 
-- `/styleguide/` is the living reference: build pages from its parts (`Hero`, `ProofStrip`, `Card`, `ContactSection`), not new one-off styles.
+- `/styleguide/` is the living reference: build pages from its parts (`Hero`, `ProofStrip`, `Card` and `WorkCard`, `Figure`, `ArtefactTable`, `ContactSection`), not new one-off styles.
 - Colours come from `tokens.css` only. Every foreground and background pair goes in `pairs` in `src/lib/palette.ts`; the palette test fails any pair under 4.5:1 (3:1 for UI parts) in either theme.
 - Ochre gold (`--gold`, `--on-hero-gold`) is for the title line, the one primary action on the navy band, rules, highlights and tags. Never body text or large fills.
 - The header and hero band are the same navy (`--hero-bg`) in both themes. In dark mode the band keeps its shape through the 1px `--hero-edge`, not a lighter band (a lighter navy is only 1.25:1 against the dark page).
-- The browser test (`scripts/tests/browser.test.mjs`) needs Chrome or Edge; set `CHROME_PATH` if neither is in a standard place. It checks the first screen at 1366x768 and 390x844, the one-row header at 360px, no sideways scroll, the toggle's name, `#contact` and the 200 KB budget.
+- The browser test (`scripts/tests/browser.test.mjs`) needs Chrome or Edge; set `CHROME_PATH` if neither is in a standard place. It checks the first screen at 1366x768 and 390x844 (role pages and every case study), the one-row header at 360px, no sideways scroll of the page or any figure, diagram text inside its boxes, the `/work/` filters, the toggle's name, `#contact` and the 200 KB budget.
 
 ## Gotchas
 
@@ -36,7 +36,10 @@ Static Astro site built from `SPEC.md`. The spec is the source of truth for scop
 - The theme toggle is an inline script in `BaseLayout.astro` (it must run before paint to avoid a flash). When the CSP lands (P4), its hash must be in `script-src`.
 - `₦` is outside the fonts' basic Latin subset. Each family has a naira-only file (`*-naira.woff2`, about 1.2 KB, `unicode-range: U+20A6` in `tokens.css`); the browser test fails if a page loads the 85 KB latin-ext file instead. Regenerate both after any font upgrade (README "Fonts") and check ₦ renders.
 - `/styleguide/` must stay out of the sitemap (a test checks this).
-- Link check: `/work/` and the six `/work/<slug>/` pages the P2 cards link to are excluded until P3 builds them (`PENDING_PATHS` in `scripts/lib/checks.mjs`). Remove each in the PR that builds it. Internal links are checked by `pnpm test`; lychee in CI checks external links only.
+- Link check: internal links are checked by `pnpm test` (`PENDING_PATHS` in `scripts/lib/checks.mjs` lists any path a later item builds; empty since P3); lychee in CI checks external links only.
+- Case study artefacts are data in the case study file, drawn at build time by `src/lib/diagrams.ts` (layout) and `Figure.astro` (diagrams) or `ArtefactTable.astro` (tables). Text widths there are estimates; the browser test measures the real text against each box at 360px and 1366px, so run it after changing labels, fonts or `TEXT` sizes.
+- `Figure.astro`'s `role="img"` hides everything inside it from screen readers: never put a table or a link in a diagram figure (a test checks tables).
+- Performance Buddy must never read as live, launched or piloted: `findLiveClaims` fails the word "live" anywhere on its page, even as a verb ("bugs live in"). The aggregator's projected figures must share a sentence with "projected" (`findUnlabelledProjections`, every page).
 - The figures check (P4) must exempt `/styleguide/`: it shows hex codes and contrast ratios.
 - Astro collections come back sorted by id, not file order. The YAML list collections (`experience`, `certifications`, `writing`) get a `position` from their loader in `content.config.ts`; read them with `getOrdered()` (`src/lib/content.ts`), never `getCollection()` directly.
 - Code that runs at build can't find repo files from `import.meta.url` (it points into the build bundle); use `process.cwd()`, as `missingCv()` does.

@@ -49,21 +49,98 @@ export type PublishedRole = z.infer<typeof publishedRole>;
 export const TAGS = ['Banking', 'AI product', 'Requirements', 'Process', 'Data', 'AI governance'] as const;
 export const ROLE_SLUGS = ['business-analyst', 'project-manager', 'product-manager'] as const;
 
-// Case study frontmatter (SPEC 9.2). P2 uses the card fields; P3 adds the bodies and pages.
-export const workSchema = z.object({
-  title: z.string(),
-  slug,
-  summary: z.string(),
-  role: z.string(),
-  organisation: z.string(),
-  period: z.string(),
-  tags: z.array(z.enum(TAGS)).min(1),
-  roles: z.array(z.enum(ROLE_SLUGS)).min(1),
-  // Optional: Performance Buddy has no outcome figure (SPEC 5.2). Any figure must be in SPEC 6.2.
-  headlineFigure: z.string().optional(),
-  order: z.number(),
-  draft: z.boolean().default(false),
+// Artefacts (SPEC 4.3 item 6 and 7): data in the case study file, drawn at build time as an HTML table or an SVG
+// diagram (src/lib/diagrams.ts) with a text walk-through generated from the same data.
+const artefactBase = {
+  id: slug,
+  caption: z.string(),
+  // SPEC 7: sanitised artefacts say so.
+  label: z.enum(['Illustrative', 'Simplified', 'Illustrative, simplified']).optional(),
+};
+const diagramStep = z.object({ label: z.string(), note: z.string().optional(), highlight: z.boolean().default(false) });
+
+const tableArtefact = z.object({
+  kind: z.literal('table'),
+  ...artefactBase,
+  columns: z.array(z.string()).min(2),
+  // The first cell of each row is its row header.
+  rows: z.array(z.array(z.string())).min(1),
 });
+// Steps in order: a row of boxes on wide screens, a column on narrow ones.
+const flowArtefact = z.object({ kind: z.literal('flow'), ...artefactBase, steps: z.array(diagramStep).min(2).max(7) });
+// Steps narrowing down the page; a highlighted step marks where something was found.
+const funnelArtefact = z.object({ kind: z.literal('funnel'), ...artefactBase, steps: z.array(diagramStep).min(2).max(7) });
+// Checks tried in order: the first that matches decides; otherwise the last box applies.
+const decisionArtefact = z.object({
+  kind: z.literal('decision'),
+  ...artefactBase,
+  checks: z.array(z.object({ question: z.string(), yes: z.string() })).min(1).max(6),
+  otherwise: z.string(),
+});
+// SPEC 5.4: one swimlane per state (current, future), 5 to 7 steps each, every step in a listed lane.
+const swimlaneArtefact = z.object({
+  kind: z.literal('swimlane'),
+  ...artefactBase,
+  lanes: z.array(z.string()).min(2).max(5),
+  states: z
+    .array(z.object({ title: z.string(), steps: z.array(z.object({ lane: z.string(), label: z.string() })).min(5).max(7) }))
+    .min(1)
+    .max(2),
+});
+
+const artefact = z.discriminatedUnion('kind', [tableArtefact, flowArtefact, funnelArtefact, decisionArtefact, swimlaneArtefact]);
+export type Artefact = z.infer<typeof artefact>;
+export type DiagramArtefact = Exclude<Artefact, { kind: 'table' }>;
+
+// Case study frontmatter (SPEC 9.2, plus the page fields SPEC 4.3 needs). The body holds Context, The problem
+// and What I did; the template places the artefacts, outcome and lessons after it.
+export const workSchema = z
+  .object({
+    title: z.string(),
+    slug,
+    // The one-line outcome, on cards and under the page title.
+    summary: z.string(),
+    role: z.string(),
+    organisation: z.string(),
+    period: z.string(),
+    // The metadata row's "team or stakeholders" (SPEC 4.3 item 1).
+    team: z.string().optional(),
+    tags: z.array(z.enum(TAGS)).min(1),
+    roles: z.array(z.enum(ROLE_SLUGS)).min(1),
+    // Optional: Performance Buddy has no outcome figure (SPEC 5.2). Any figure must be in SPEC 6.2.
+    headlineFigure: z.string().optional(),
+    order: z.number(),
+    draft: z.boolean().default(false),
+    glance: z.object({ problem: z.string(), role: z.string(), produced: z.string(), outcome: z.string() }),
+    artefacts: z.array(artefact).min(1),
+    // Paragraphs. SPEC 4.3 item 7: figures from SPEC 6.2 only, projected ones labelled.
+    outcome: z.array(z.string()).min(1).max(3),
+    // The "Build notes" box (SPEC 5.3 and 5.6).
+    buildNotes: z.array(z.string()).min(1).optional(),
+    learned: z.array(z.string()).min(2).max(3),
+    furtherReading: z.array(z.object({ title: z.string(), url: z.url() })).min(1).optional(),
+  })
+  .superRefine((w, ctx) => {
+    const ids = new Set<string>();
+    w.artefacts.forEach((a, i) => {
+      if (ids.has(a.id)) ctx.addIssue({ code: 'custom', path: ['artefacts', i, 'id'], message: `duplicate artefact id "${a.id}"` });
+      ids.add(a.id);
+      if (a.kind === 'table') {
+        a.rows.forEach((row, r) => {
+          if (row.length !== a.columns.length)
+            ctx.addIssue({ code: 'custom', path: ['artefacts', i, 'rows', r], message: `${row.length} cells for ${a.columns.length} columns` });
+        });
+      }
+      if (a.kind === 'swimlane') {
+        a.states.forEach((s, si) =>
+          s.steps.forEach((step, st) => {
+            if (!a.lanes.includes(step.lane))
+              ctx.addIssue({ code: 'custom', path: ['artefacts', i, 'states', si, 'steps', st, 'lane'], message: `"${step.lane}" is not in lanes` });
+          }),
+        );
+      }
+    });
+  });
 
 export const experienceSchema = z.object({
   id: z.string(),

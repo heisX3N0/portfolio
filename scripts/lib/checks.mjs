@@ -2,17 +2,8 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
-// Pages P3 builds: the case study index and the six case studies that P2's cards already link to.
-// TODO(P3): remove each path in the PR that builds it.
-export const PENDING_PATHS = [
-  '/work/',
-  '/work/closa-cbn-compliance/',
-  '/work/performance-buddy-access-control/',
-  '/work/aimery-ai-requirements/',
-  '/work/merge-x-requirements-from-failure/',
-  '/work/aggregator-onboarding-redesign/',
-  '/work/gpt-investor-discovery/',
-];
+// Internal paths the link check skips because a later backlog item builds them. Empty since P3 built /work/.
+export const PENDING_PATHS = [];
 
 export function listHtmlFiles(dir) {
   const out = [];
@@ -131,4 +122,21 @@ export function findMissingFragments(html) {
   const missing = new Set();
   for (const m of html.matchAll(/\shref="#([^"]+)"/g)) if (!ids.has(m[1])) missing.add(`#${m[1]}`);
   return [...missing];
+}
+
+// Words that describe Performance Buddy as live, launched or piloted (SPEC 5.2: it is in progress).
+const LIVE = /\b(?:live|launch(?:ed|es)?|pilot(?:ed|ing|s)?|rolled out|in production)\b/gi;
+export function findLiveClaims(text) {
+  return [...text.matchAll(LIVE)].map((m) => m[0].toLowerCase());
+}
+
+// The aggregator's projected figures (SPEC 5.4) must share a sentence with the word "projected".
+const PROJECTED = ['2M+', '₦100M+'];
+export function findUnlabelledProjections(text) {
+  const hits = [];
+  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+    if (/projected/i.test(sentence)) continue;
+    for (const figure of PROJECTED) if (sentence.includes(figure)) hits.push(figure);
+  }
+  return hits;
 }

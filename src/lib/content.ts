@@ -9,7 +9,7 @@ export async function getPublishedRoles(): Promise<PublishedRole[]> {
   return roles.flatMap((r) => (r.data.published ? [r.data] : [])).sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
-type Work = CollectionEntry<'work'>['data'];
+export type Work = CollectionEntry<'work'>['data'];
 
 /** Every case study by slug, drafts included. */
 export async function getWork(): Promise<Map<string, Work>> {
@@ -19,6 +19,15 @@ export async function getWork(): Promise<Map<string, Work>> {
 
 /** Drafts are left out of production builds (SPEC 9.2). */
 export const isPublished = (w: Work) => !(import.meta.env.PROD && w.draft);
+
+/** Published case study entries in display order (`order`): /work/ and each case study's previous and next links share it. */
+export async function getPublishedWorkEntries(): Promise<CollectionEntry<'work'>[]> {
+  return (await getCollection('work')).filter((e) => isPublished(e.data)).sort((a, b) => a.data.order - b.data.order);
+}
+
+export async function getPublishedWork(): Promise<Work[]> {
+  return (await getPublishedWorkEntries()).map((e) => e.data);
+}
 
 /** The published case studies for these slugs, in that order. A slug with no case study at all fails the build. */
 export function pick(work: Map<string, Work>, slugs: string[], where: string): Work[] {

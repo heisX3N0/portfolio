@@ -1,0 +1,13 @@
+---
+// Text from a content field with its Markdown-style links ("[label](https://...)") as real links; everything else
+// stays plain, escaped text. For the one-line fields (outcome, build notes) that are frontmatter, not Markdown body.
+import { linkParts } from '../lib/links';
+
+interface Props {
+  text: string;
+}
+
+const parts = linkParts(Astro.props.text);
+---
+
+{parts.map((p) => (p.href ? <a href={p.href}>{p.text}</a> : p.text))}
