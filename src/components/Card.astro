@@ -1,0 +1,21 @@
+---
+// Case study card (SPEC 4.1 item 3): title, one-line outcome, context tags, one figure.
+interface Props {
+  title: string;
+  href: string;
+  summary: string;
+  tags: string[];
+  figure?: string;
+}
+
+const { title, href, summary, tags, figure } = Astro.props;
+---
+
+<article class="card">
+  <h3><a href={href}>{title}</a></h3>
+  <p class="muted">{summary}</p>
+  <ul class="tags" aria-label="Tags">
+    {tags.map((tag) => <li class="tag">{tag}</li>)}
+  </ul>
+  {figure && <p class="card__figure">{figure}</p>}
+</article>

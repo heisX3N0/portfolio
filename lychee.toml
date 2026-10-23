@@ -1,0 +1,18 @@
+# External link check for the built site (SPEC 9.4), with retries. Runs in CI against dist/.
+# Internal links are checked offline by `pnpm test` (scripts/lib/checks.mjs), which also holds
+# the list of pages later phases build.
+max_retries = 3
+retry_wait_time = 5
+timeout = 20
+accept = ["200..=299", "429"]
+include_mail = false
+no_progress = true
+
+exclude = [
+  # Internal links: covered by pnpm test.
+  "^file://",
+  # LinkedIn returns 999 to automated requests; the URL is checked by hand.
+  "^https://www\\.linkedin\\.com/",
+  # The site's own domain is not live until P5.
+  "^https://boluwatife\\.olapade\\.site/",
+]
