@@ -654,22 +654,24 @@ Each phase ends with a PR, a preview URL and a short build report: what was done
 
 ## 11. Acceptance checklist (launch gate)
 
-- [ ] Title, dates and figures match the CV and Section 6 exactly; the figures check passes.
-- [ ] The BA role page's title matches the BA CV exactly; no "Product Manager" title appears on it.
-- [ ] Unpublished role pages are not built, linked or in the sitemap; there are no "coming soon" placeholders.
-- [ ] Role pages don't link to each other.
-- [ ] The first screen of the root page, the BA role page and every case study passes the depth rule (Section 1.4) at 1366×768 and 390×844.
-- [ ] Performance Buddy is not described as live, launched or piloted, and has no internal details.
-- [ ] Projected aggregator figures are labelled as projected.
-- [ ] Every case study has at least one artefact with a caption and a text alternative.
-- [ ] All certification links open the right badge.
+Checked in P5 (2026-10-23), with the evidence for each item in [docs/launch-qa.md](docs/launch-qa.md). The three open boxes wait on the owner: confirming the CV is the current one, the screen-reader spot check (the keyboard walkthrough passed), and judging the README.
+
+- [x] Title, dates and figures match the CV and Section 6 exactly; the figures check passes.
+- [x] The BA role page's title matches the BA CV exactly; no "Product Manager" title appears on it.
+- [x] Unpublished role pages are not built, linked or in the sitemap; there are no "coming soon" placeholders.
+- [x] Role pages don't link to each other.
+- [x] The first screen of the root page, the BA role page and every case study passes the depth rule (Section 1.4) at 1366×768 and 390×844.
+- [x] Performance Buddy is not described as live, launched or piloted, and has no internal details.
+- [x] Projected aggregator figures are labelled as projected.
+- [x] Every case study has at least one artefact with a caption and a text alternative.
+- [x] All certification links open the right badge.
 - [ ] `/cv/business-analyst.pdf` opens the current BA CV.
-- [ ] With the headshot flag off, the hero looks complete; with it on (test image), the layout holds at all widths.
-- [ ] Lighthouse 95+ (mobile and desktop) on the root page, the BA role page, one case study and About.
+- [x] With the headshot flag off, the hero looks complete; with it on (test image), the layout holds at all widths.
+- [x] Lighthouse 95+ (mobile and desktop) on the root page, the BA role page, one case study and About.
 - [ ] Keyboard-only walkthrough of all pages works; screen-reader spot check on the BA role page and one case study.
-- [ ] No horizontal scroll at 360px; dark mode is readable everywhere.
-- [ ] `robots.txt`, `sitemap.xml`, canonical tags, OG image and JSON-LD are present; no `noindex`.
-- [ ] securityheaders.com grade A.
+- [x] No horizontal scroll at 360px; dark mode is readable everywhere.
+- [x] `robots.txt`, `sitemap.xml`, canonical tags, OG image and JSON-LD are present; no `noindex`.
+- [x] securityheaders.com grade A.
 - [ ] The README lets the owner update content without help.
 
 ---

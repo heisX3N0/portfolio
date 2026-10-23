@@ -9,6 +9,7 @@ import { listHtmlFiles, pagePath } from '../lib/checks.mjs';
 import { serve, launch } from '../lib/browser.mjs';
 import { rowCount, outsideFirstScreen, overBudget } from '../lib/layout.mjs';
 import { parseHeaders } from '../lib/headers.mjs';
+import { crc32, deflateSync } from 'node:zlib';
 
 const dist = fileURLToPath(new URL('../../dist/', import.meta.url));
 if (!existsSync(dist)) throw new Error('dist/ missing: run pnpm build first');
@@ -22,8 +23,27 @@ let browser;
 const csp = parseHeaders(readFileSync(join(dist, '_headers'), 'utf8')).find((r) => r.pattern === '/*')?.headers['content-security-policy'];
 if (!csp) throw new Error('dist/_headers has no Content-Security-Policy for /*');
 
+// P5 (SPEC 11): a test headshot, made here so no image is committed: a 320x320 PNG in one flat colour.
+const HEADSHOT = '/__test/headshot.png';
+function testPng(size = 320) {
+  const chunk = (type, data) => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(data.length);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(Buffer.concat([Buffer.from(type), data])));
+    return Buffer.concat([length, Buffer.from(type), data, crc]);
+  };
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(size, 0);
+  header.writeUInt32BE(size, 4);
+  header.set([8, 2, 0, 0, 0], 8); // 8-bit RGB
+  const row = Buffer.concat([Buffer.from([0]), Buffer.from(Array(size).fill([120, 140, 160]).flat())]);
+  const pixels = deflateSync(Buffer.concat(Array(size).fill(row)));
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', header), chunk('IDAT', pixels), chunk('IEND', Buffer.alloc(0))]);
+}
+
 before(async () => {
-  ({ server, origin } = await serve(dist, { 'Content-Security-Policy': csp }));
+  ({ server, origin } = await serve(dist, { 'Content-Security-Policy': csp }, { [HEADSHOT]: { type: 'image/png', body: testPng() } }));
   browser = await launch();
   // Record anything the CSP blocks; this runs outside the page's CSP, before its own scripts.
   await browser.beforeEachLoad(`window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(e.violatedDirective + ' ' + (e.blockedURI || 'inline')));`);
@@ -94,6 +114,67 @@ for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }]) 
       'Download CV': await browser.evaluate(rect('.hero [data-download-cv]')),
     };
     assert.deepEqual(outsideFirstScreen(items, size.height), [], JSON.stringify(items));
+  });
+}
+
+// SPEC 11: with the headshot flag on, the hero holds at every width. The built pages have the flag off (site.yaml), so
+// the test turns it on in the page as Hero.astro would: the intro gets hero__intro--headshot and the image goes first.
+const heroSource = readFileSync(new URL('../../src/components/Hero.astro', import.meta.url), 'utf8');
+const turnOnHeadshot = `(async () => {
+  const intro = document.querySelector('.hero__intro');
+  intro.classList.add('hero__intro--headshot');
+  const img = document.createElement('img');
+  Object.assign(img, { className: 'hero__headshot', src: ${JSON.stringify(HEADSHOT)}, alt: document.querySelector('.hero h1').textContent, width: 160, height: 160 });
+  // Astro scopes Hero's styles with a data-astro-cid-* attribute on each of its elements: without it, no hero style applies.
+  const scope = [...intro.attributes].find((a) => a.name.startsWith('data-astro-cid-'));
+  if (!scope) throw new Error('no Astro scope attribute on .hero__intro');
+  img.setAttribute(scope.name, '');
+  intro.prepend(img);
+  await img.decode();
+  return img.naturalWidth;
+})()`;
+// Overflow: anything in the hero past the viewport's sides, text wider than its own box, the headshot outside the
+// intro. Overlap: the headshot over any hero text, or any two hero parts over each other (the buttons, not the actions
+// area: on desktop the proof strip rises into that area's bottom padding by design).
+const headshotProblems = `(() => {
+  const out = [];
+  const name = (el) => el.className || el.tagName;
+  const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5;
+  const width = document.documentElement.clientWidth;
+  if (document.documentElement.scrollWidth > width) out.push('page scrolls sideways: ' + document.documentElement.scrollWidth + 'px');
+  for (const el of document.querySelectorAll('.hero *')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !el.offsetParent) continue;
+    if (r.left < -0.5 || r.right > width + 0.5) out.push('outside the viewport: ' + name(el));
+  }
+  const text = [...document.querySelectorAll('.hero h1, .hero__title, .hero__positioning, .hero__supporting')];
+  for (const el of text) if (el.scrollWidth > el.clientWidth + 1) out.push('text wider than its box: ' + name(el));
+  const shot = document.querySelector('.hero__headshot').getBoundingClientRect();
+  const intro = document.querySelector('.hero__intro').getBoundingClientRect();
+  if (shot.left < intro.left - 0.5 || shot.right > intro.right + 0.5) out.push('headshot outside the intro');
+  for (const el of text) if (overlap(shot, el.getBoundingClientRect())) out.push('headshot overlaps ' + name(el));
+  const areas = [...document.querySelectorAll('.hero__intro, .hero__supporting, .hero__actions .button, .hero__contact, .hero [data-proof-strip]')].filter((el) => el.offsetParent);
+  for (const [i, a] of areas.entries()) {
+    for (const b of areas.slice(i + 1)) if (overlap(a.getBoundingClientRect(), b.getBoundingClientRect())) out.push(name(a) + ' overlaps ' + name(b));
+  }
+  return out;
+})()`;
+
+test('the headshot test turns it on the way Hero.astro does', () => {
+  assert.match(heroSource, /'hero__intro--headshot': showHeadshot/);
+  assert.match(heroSource, /<img class="hero__headshot" src=\{headshot!\.src\} alt=\{name\} width="160" height="160" \/>/);
+});
+
+for (const size of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 1366, height: 768 }]) {
+  test(`headshot on: the hero neither overflows nor overlaps at ${size.width}x${size.height}`, async () => {
+    for (const path of ['/', '/business-analyst/']) {
+      for (const scheme of ['light', 'dark']) {
+        await browser.open(origin + path, { ...size, scheme });
+        assert.equal(await browser.evaluate(turnOnHeadshot), 320, `${path}: test image did not load`);
+        assert.deepEqual(await browser.evaluate(headshotProblems), [], `${path} (${scheme})`);
+        assert.deepEqual(await browser.evaluate('window.__csp'), [], `${path}: CSP blocked the headshot`);
+      }
+    }
   });
 }
 
