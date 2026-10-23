@@ -120,7 +120,7 @@ Each link on `/about/` opened in the built-in browser, 2026-10-23. Every page na
     OK: HTTPS, http:// redirect, headers, sitemap pages, canonicals, no noindex, pages.dev canonical
   ```
 
-- The launch check's refused cases run in `pnpm test` (`scripts/tests/launch-check.test.mjs`) against a local server serving a broken copy of the built site: no HTTPS, an `http://` site, no `http://` redirect, each of the five SPEC 9.5 headers missing, a sitemap page returning 404, a `noindex` meta tag, an `X-Robots-Tag: noindex` header, a wrong canonical, and a `pages.dev` copy whose canonical is not the domain. All 14 cases failed against a stub before the check was written. Run by hand against a plain local server (no HTTPS, no headers), the CLI exits 1 and lists "not HTTPS" and every missing header on each page.
+- The launch check's refused cases run in `pnpm test` (`scripts/tests/launch-check.test.mjs`) against a local server serving a broken copy of the built site: no HTTPS, an `http://` site, no `http://` redirect, each of the five SPEC 9.5 headers missing, a sitemap page returning 404, a `noindex` meta tag (robots or googlebot), an `X-Robots-Tag: noindex` header, a wrong canonical, a `pages.dev` copy whose canonical is not the domain, a redirect with no Location, and a sitemap loc that is not a URL (the last two must be reported, not crash the run). All 14 first cases failed against a stub before the check was written; the 3 added after code review failed against the first version. Run by hand against a plain local server (no HTTPS, no headers), the CLI exits 1 and lists "not HTTPS" and every missing header on each page.
 
 ### securityheaders.com (manual)
 

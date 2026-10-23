@@ -8,8 +8,19 @@ export const DOMAIN = 'https://boluwatife.olapade.site';
 export const MIRROR = 'https://boluwatife-portfolio.pages.dev';
 
 const REDIRECTS = new Set([301, 302, 307, 308]);
+// A request that gets no answer in this time is a failure, so the check always finishes.
+const TIMEOUT_MS = 15_000;
 const canonicalOf = (html) => html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
-const robotsMeta = (html) => html.match(/<meta name="robots" content="([^"]*)"/i)?.[1] ?? '';
+// Every robots meta tag, including crawler-specific ones such as googlebot.
+const robotsMeta = (html) => [...html.matchAll(/<meta name="(?:robots|googlebot|bingbot)" content="([^"]*)"/gi)].map((m) => m[1]).join(',');
+// A URL from the server (a Location header, a sitemap loc), or null when it is not one.
+const toUrl = (value, base) => {
+  try {
+    return new URL(value, base);
+  } catch {
+    return null;
+  }
+};
 
 /**
  * `expected`: the headers every page must carry, as in the `/*` rule of public/_headers (lower-case names).
@@ -21,9 +32,9 @@ export async function launchCheck({ site = DOMAIN, mirror = MIRROR, canonical = 
   const get = async (url, init = {}) => {
     requests++;
     try {
-      return await fetch(url, { redirect: 'manual', ...init });
+      return await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(TIMEOUT_MS), ...init });
     } catch (error) {
-      failures.push(`${url}: request failed (${error.cause?.message ?? error.message}): no HTTPS certificate or no DNS?`);
+      failures.push(`${url}: request failed (${error.cause?.message ?? error.message}): no HTTPS certificate, no DNS or no answer?`);
       return null;
     }
   };
@@ -34,9 +45,10 @@ export async function launchCheck({ site = DOMAIN, mirror = MIRROR, canonical = 
     const http = new URL('/', site);
     http.protocol = 'http:';
     const res = await get(http.href);
-    const to = res && res.headers.get('location') && new URL(res.headers.get('location'), http);
-    if (res && !(REDIRECTS.has(res.status) && to.protocol === 'https:' && to.host === base.host)) {
-      failures.push(`${http.href} does not redirect to https:// (status ${res.status}${to ? `, to ${to.href}` : ''})`);
+    const location = res?.headers.get('location');
+    const to = location ? toUrl(location, http) : null;
+    if (res && !(REDIRECTS.has(res.status) && to?.protocol === 'https:' && to.host === base.host)) {
+      failures.push(`${http.href} does not redirect to https:// (status ${res.status}, Location ${location ?? 'missing'})`);
     }
   }
 
@@ -46,12 +58,19 @@ export async function launchCheck({ site = DOMAIN, mirror = MIRROR, canonical = 
   if (index && index.status !== 200) failures.push(`/sitemap-index.xml: status ${index.status}`);
   else if (index) {
     for (const loc of sitemapUrls(await index.text())) {
-      const sitemap = await get(new URL(new URL(loc).pathname, site).href);
+      const url = toUrl(loc);
+      if (!url) {
+        failures.push(`sitemap-index.xml: loc is not a URL: ${loc}`);
+        continue;
+      }
+      const sitemap = await get(new URL(url.pathname, site).href);
       if (sitemap && sitemap.status !== 200) failures.push(`${loc}: status ${sitemap.status}`);
       else if (sitemap) {
         for (const page of sitemapUrls(await sitemap.text())) {
-          if (!page.startsWith(`${canonical}/`)) failures.push(`sitemap URL not on ${canonical}: ${page}`);
-          paths.push(new URL(page).pathname);
+          const pageUrl = toUrl(page);
+          if (!pageUrl) failures.push(`${loc}: loc is not a URL: ${page}`);
+          else if (!page.startsWith(`${canonical}/`)) failures.push(`sitemap URL not on ${canonical}: ${page}`);
+          else paths.push(pageUrl.pathname);
         }
       }
     }

@@ -26,7 +26,11 @@ before(async () => {
     const as = req.headers['x-test-as'];
     const path = new URL(req.url, 'http://x').pathname;
     if (as === 'http' && !broken.noRedirect) {
-      res.writeHead(308, { Location: `${DOMAIN}${path}` }).end();
+      res.writeHead(308, broken.noLocation ? {} : { Location: `${DOMAIN}${path}` }).end();
+      return;
+    }
+    if (broken.badLoc && path === '/sitemap-0.xml') {
+      res.writeHead(200, { 'Content-Type': 'application/xml' }).end('<urlset><url><loc>not a url</loc></url></urlset>');
       return;
     }
     let file = join(dist, path.endsWith('/') ? `${path}index.html` : path);
@@ -37,6 +41,7 @@ before(async () => {
     let body = readFileSync(file, 'utf8');
     if (extname(file) === '.html') {
       if (path === broken.noindex) body = body.replace('<head>', '<head><meta name="robots" content="noindex">');
+      if (path === broken.googlebot) body = body.replace('<head>', '<head><meta name="googlebot" content="noindex">');
       if (as === 'mirror' && broken.mirrorCanonical) body = body.replaceAll(`href="${DOMAIN}/`, `href="${MIRROR}/`);
       if (path === broken.canonical) body = body.replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${DOMAIN}/">`);
     }
@@ -95,6 +100,18 @@ test('refused: a sitemap URL is not 200', async () => {
 
 test('refused: a page has a noindex meta tag', async () => {
   fails(await check({ noindex: '/work/' }), /\/work\/.*noindex/);
+});
+
+test('refused: http:// answers a redirect with no Location, reported rather than crashing', async () => {
+  fails(await check({ noLocation: true }), /does not redirect to https/);
+});
+
+test('refused: a sitemap loc that is not a URL, reported rather than crashing', async () => {
+  fails(await check({ badLoc: true }), /not a url/);
+});
+
+test('refused: a page has a googlebot noindex meta tag', async () => {
+  fails(await check({ googlebot: '/about/' }), /\/about\/.*noindex/);
 });
 
 test('refused: a page is served with X-Robots-Tag noindex', async () => {
