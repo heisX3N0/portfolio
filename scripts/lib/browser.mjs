@@ -18,7 +18,8 @@ const TYPES = {
 };
 const TEXT = new Set(['.html', '.css', '.js', '.svg', '.xml']);
 
-export function serve(distDir) {
+/** `pageHeaders` go on HTML responses only, as Cloudflare's _headers would add them (the CSP check). */
+export function serve(distDir, pageHeaders = {}) {
   const server = createServer((req, res) => {
     let path = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\//, '');
     if (path === '' || path.endsWith('/')) path += 'index.html';
@@ -29,7 +30,7 @@ export function serve(distDir) {
     }
     const ext = extname(file);
     let body = readFileSync(file);
-    const headers = { 'Content-Type': TYPES[ext] ?? 'application/octet-stream' };
+    const headers = { 'Content-Type': TYPES[ext] ?? 'application/octet-stream', ...(ext === '.html' ? pageHeaders : {}) };
     if (TEXT.has(ext)) {
       body = gzipSync(body);
       headers['Content-Encoding'] = 'gzip';
@@ -117,6 +118,9 @@ export async function launch() {
   // Every load is a first visit: a cache hit reports transferSize 0, which would hide bytes from the page weight check.
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
+  // Test visits must never count as traffic: the analytics script still loads (and is checked against the CSP),
+  // but its report to Cloudflare is blocked.
+  await send('Network.setBlockedURLs', { urls: ['*cloudflareinsights.com/cdn-cgi/rum*'] });
 
   async function evaluate(expression) {
     const { result, exceptionDetails } = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
@@ -134,6 +138,10 @@ export async function launch() {
       await send('Page.navigate', { url });
       await loaded;
       await evaluate('document.fonts.ready.then(() => true)');
+    },
+    /** Run a script in every page loaded from now on, before the page's own scripts (and outside its CSP). */
+    async beforeEachLoad(source) {
+      await send('Page.addScriptToEvaluateOnNewDocument', { source });
     },
     async close() {
       ws.close();

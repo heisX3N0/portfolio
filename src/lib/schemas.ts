@@ -1,8 +1,9 @@
 // Content schemas (SPEC 9.2). Kept free of astro:content so the Node tests can check them directly.
 import { z } from 'astro/zod';
 
-// Paths a role slug may not take: each is a page or folder of its own (SPEC 3).
-const RESERVED = ['work', 'about', 'cv', 'styleguide', 'fonts', '404'];
+// Paths a role slug may not take: each is a page or folder of its own (SPEC 3). "site" is the shared OG image's
+// name in /og/, next to one image per role slug (src/pages/og/[name].png.ts).
+const RESERVED = ['work', 'about', 'cv', 'styleguide', 'fonts', '404', 'og', 'site'];
 
 const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'lower-case words joined by hyphens');
 
@@ -19,6 +20,10 @@ export const siteSchema = z.object({
   location: z.string(),
   defaultCv: z.string().startsWith('/cv/'),
   headshot: z.object({ show: z.boolean(), src: z.string() }),
+  // SPEC 9.3: the Person JSON-LD's alumniOf (SPEC 6.3 education).
+  alumniOf: z.array(z.string()).min(1),
+  // SPEC 9.1: the Cloudflare Web Analytics site token. Empty until the owner adds it; no beacon is emitted then.
+  analyticsToken: z.union([z.literal(''), z.string().regex(/^[0-9a-f]{32}$/, '32 lower-case hex characters, from the Web Analytics snippet')]),
 });
 
 const publishedRole = z.object({

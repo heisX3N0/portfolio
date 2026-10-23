@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ContactSection from '../components/ContactSection.astro';
 import { getSite } from '../lib/site';
+import { ogImagePath, SITE_OG } from '../lib/seo';
 
 interface Props {
   title: string;
@@ -13,13 +14,36 @@ interface Props {
   cvFile?: string;
   /** The contact section's sentence. Role pages pass their own (SPEC 4.1 item 6); elsewhere there is none. */
   contactLine?: string;
-  /** False on pages with no real URL of their own (the 404 page). */
+  /** False on pages with no real URL of their own (the 404 page): no canonical, sharing tags or JSON-LD. */
   canonical?: boolean;
+  /** The share image's name in /og/: a role page passes its slug; every other page shares the site image. */
+  ogImage?: string;
+  /** "article" on case studies (SPEC 9.3). */
+  ogType?: 'website' | 'article';
+  /** JSON-LD for search engines (SPEC 9.3), from src/lib/seo.ts. */
+  jsonLd?: object;
 }
 
 const site = await getSite();
-const { title, description, cvFile = site.defaultCv, contactLine, canonical: hasCanonical = true } = Astro.props;
+const {
+  title,
+  description,
+  cvFile = site.defaultCv,
+  contactLine,
+  canonical: hasCanonical = true,
+  ogImage = SITE_OG,
+  ogType = 'website',
+  jsonLd,
+} = Astro.props;
 const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undefined;
+const image = new URL(ogImagePath(ogImage), Astro.site);
+// The image shows the name with the root line, or on a role page the name and role title (the page title).
+const imageAlt = ogImage === SITE_OG ? `${site.name}: ${site.rootLine}` : title;
+// The CSP in public/_headers allows the theme script by its hash. A Windows checkout gives it CRLF line endings,
+// which would change the hash, so it is always built with LF.
+const theme = themeScript.replace(/\r\n?/g, '\n');
+// Cloudflare Web Analytics (SPEC 9.1): cookieless, so no consent banner. Its host is allowed in the CSP (public/_headers).
+const beacon = site.analyticsToken ? JSON.stringify({ token: site.analyticsToken }) : undefined;
 ---
 
 <!doctype html>
@@ -29,14 +53,33 @@ const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undef
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {canonical && <link rel="canonical" href={canonical} />}
+    {
+      canonical && (
+        <>
+          <link rel="canonical" href={canonical} />
+          <meta property="og:type" content={ogType} />
+          <meta property="og:url" content={canonical} />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:site_name" content={site.name} />
+          <meta property="og:locale" content="en_GB" />
+          <meta property="og:image" content={image} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={imageAlt} />
+          <meta name="twitter:card" content="summary_large_image" />
+          {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />}
+        </>
+      )
+    }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
     <!-- The serif sets the h1, the largest text above the fold. -->
     <link rel="preload" href="/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="color-scheme" content="light dark" />
-    <script is:inline set:html={themeScript} />
+    <script is:inline set:html={theme} />
+    {beacon && <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={beacon} />}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

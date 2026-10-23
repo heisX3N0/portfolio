@@ -6,6 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Writing from '../components/Writing.astro';
 import { getSite } from '../lib/site';
 import { getOrdered } from '../lib/content';
+import { personJsonLd } from '../lib/seo';
 
 const site = await getSite();
 const about = await getEntry('about', 'about');
@@ -15,9 +16,10 @@ const experience = await getOrdered('experience');
 const certifications = await getOrdered('certifications');
 const writing = await getOrdered('writing');
 const { title, description, howBuilt, repo, spec, education } = about.data;
+const jsonLd = await personJsonLd(Astro.site!);
 ---
 
-<BaseLayout title={`${title} | ${site.name}`} description={description}>
+<BaseLayout title={`${title} | ${site.name}`} description={description} jsonLd={jsonLd}>
   <div class="container">
     <h1>{title}</h1>
     <div class="prose about-bio">

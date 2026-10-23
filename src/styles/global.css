@@ -325,9 +325,10 @@ figure {
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+/* Drawn at most 1:1 (the svg's width attribute) and never wider than its figure. */
 .diagram {
   display: block;
-  width: 100%;
+  max-width: 100%;
   height: auto;
   margin-inline: auto;
   font-family: var(--font-sans);

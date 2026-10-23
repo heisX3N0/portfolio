@@ -7,13 +7,15 @@ import Card from '../components/Card.astro';
 import WorkCard from '../components/WorkCard.astro';
 import { getSite } from '../lib/site';
 import { getPublishedRoles, getWork, pick } from '../lib/content';
+import { personJsonLd } from '../lib/seo';
 
 const site = await getSite();
 const roles = await getPublishedRoles();
 const selected = pick(await getWork(), site.selectedWork, 'site.yaml selectedWork');
+const jsonLd = await personJsonLd(Astro.site!);
 ---
 
-<BaseLayout title={site.name} description={`${site.rootLine} ${site.rootIntro}`}>
+<BaseLayout title={site.name} description={`${site.rootLine} ${site.rootIntro}`} jsonLd={jsonLd}>
   <Hero
     name={site.name}
     positioning={site.rootLine}
