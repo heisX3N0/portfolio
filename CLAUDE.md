@@ -18,6 +18,7 @@ Static Astro site built from `SPEC.md`. The spec is the source of truth for scop
 - No em or en dashes anywhere, including content from the spec: write "Mar 2024 to Present", "76 to 79" (owner decision 2026-10-23).
 - British English in site copy (organisation, prioritise, modelling).
 - The phone number never appears on the site. No Access Bank internal material in the repo.
+- A role's full CV title (`title`) must appear in the hero, the OG image (and its alt text) and the JSON-LD `jobTitle`. The short title (`shortTitle`, a leading part of it) may appear only in `<title>` and `og:title`; `seo.test.mjs` checks both on the BA page.
 - Role pages never link to each other. Unpublished roles are not built, linked or listed. No "coming soon".
 - Style-guide sample text uses approved copy from the spec only, so the figures check never trips on made-up numbers.
 

@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { roleSchema, workSchema, experienceSchema, writingGroupSchema } from '../../src/lib/schemas.ts';
 import { cvTodo } from '../../src/lib/cv.ts';
 import { linkParts } from '../../src/lib/links.ts';
+import { roleShare } from '../../src/lib/share.ts';
 import { findRoleLinks, readRoles } from '../lib/checks.mjs';
 
 const proof = (n) => Array.from({ length: n }, (_, i) => ({ figure: `F${i}`, text: 'text' }));
@@ -52,6 +53,42 @@ test('a role slug that is not a plain path segment, or that takes a site path, f
 test('a role CV outside /cv/ or not a PDF fails', () => {
   assert.equal(roleSchema.safeParse(role({ cvFile: '/files/cv.pdf' })).success, false);
   assert.equal(roleSchema.safeParse(role({ cvFile: '/cv/business-analyst.docx' })).success, false);
+});
+
+// P4.5: the short page title and share description. The CV title stays in the hero and JSON-LD (SPEC 9.2).
+const cvTitle = 'Business Analyst | AI & Digital Solutions | CBAP | PSPO II';
+
+test('a short title over 60 characters or a share description over 160 fails', () => {
+  assert.equal(roleSchema.safeParse(role({ title: `${'A'.repeat(61)} | B`, shortTitle: 'A'.repeat(61) })).success, false);
+  assert.equal(roleSchema.safeParse(role({ shareDescription: 'x'.repeat(161) })).success, false);
+  assert.equal(roleSchema.safeParse(role({ shareDescription: 'x'.repeat(160) })).success, true);
+});
+
+test('a short title that is not a leading part of the CV title fails', () => {
+  for (const shortTitle of ['Business', 'AI & Digital Solutions', 'Business Analyst | CBAP', 'Senior Business Analyst', '']) {
+    assert.equal(roleSchema.safeParse(role({ title: cvTitle, shortTitle })).success, false, shortTitle);
+  }
+  for (const shortTitle of ['Business Analyst', 'Business Analyst | AI & Digital Solutions']) {
+    assert.equal(roleSchema.safeParse(role({ title: cvTitle, shortTitle })).success, true, shortTitle);
+  }
+});
+
+test('a role without the short fields shares exactly what it did before P4.5', () => {
+  const r = role({ title: cvTitle, supporting: 'Supporting paragraph.' });
+  assert.deepEqual(roleShare(r, 'Boluwatife Olapade'), {
+    title: `Boluwatife Olapade | ${cvTitle}`,
+    description: 'Supporting paragraph.',
+    imageAlt: `Boluwatife Olapade | ${cvTitle}`,
+  });
+});
+
+test('a role with the short fields shares them, and the image alt keeps the full CV title', () => {
+  const r = role({ title: cvTitle, supporting: 'Long.', shortTitle: 'Business Analyst', shareDescription: 'Short.' });
+  assert.deepEqual(roleShare(r, 'Boluwatife Olapade'), {
+    title: 'Boluwatife Olapade | Business Analyst',
+    description: 'Short.',
+    imageAlt: `Boluwatife Olapade | ${cvTitle}`,
+  });
 });
 
 test('a case study with an unknown tag or role fails', () => {

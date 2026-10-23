@@ -4,6 +4,10 @@ slug: business-analyst
 published: true
 # Must match the BA CV exactly.
 title: Business Analyst | AI & Digital Solutions | CBAP | PSPO II
+# Search results and link previews (at most 60 characters, the first part or parts of title). The hero keeps title.
+shortTitle: Business Analyst
+# Search results and link previews (at most 160 characters). The first clause of supporting.
+shareDescription: I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build.
 positioning: Business Analyst who builds with AI.
 supporting: I turn regulatory deadlines, tangled processes and AI ideas into requirements that banks and product teams can build, then test that what ships is what was needed. CBAP-certified, with 4 years across banking, payments and AI products.
 # At most 5 items. Every number must be in SPEC 6.2.

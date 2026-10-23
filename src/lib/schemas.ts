@@ -30,6 +30,11 @@ const publishedRole = z.object({
   slug: slug.refine((s) => !RESERVED.includes(s), 'this path is taken by another page'),
   published: z.literal(true),
   title: z.string(),
+  // P4.5: the page and share title ("name | shortTitle"), a leading part of the CV title. Optional; the hero,
+  // OG image and JSON-LD always use the full title.
+  shortTitle: z.string().max(60).optional(),
+  // P4.5: the meta and share description. Optional; without it the supporting line is used.
+  shareDescription: z.string().max(160).optional(),
   positioning: z.string(),
   supporting: z.string(),
   // SPEC 4.1 item 2: at most 5 items, figure first (v3.1).
@@ -48,7 +53,17 @@ const publishedRole = z.object({
 // An unpublished role needs nothing but its slug until its spec addendum and CV exist (SPEC 10, phases 6 and 7).
 const unpublishedRole = z.object({ slug, published: z.literal(false) });
 
-export const roleSchema = z.discriminatedUnion('published', [publishedRole, unpublishedRole]);
+// The CV title's parts are separated by " | ". A short title is its first part or parts, so it never says
+// something the CV does not.
+const isLeadingPart = (short: string, title: string) => {
+  const parts = title.split(' | ');
+  return parts.some((_, i) => parts.slice(0, i + 1).join(' | ') === short);
+};
+
+export const roleSchema = z.discriminatedUnion('published', [publishedRole, unpublishedRole]).superRefine((r, ctx) => {
+  if (r.published && r.shortTitle !== undefined && !isLeadingPart(r.shortTitle, r.title))
+    ctx.addIssue({ code: 'custom', path: ['shortTitle'], message: 'must be the first part or parts of title, split at " | "' });
+});
 export type PublishedRole = z.infer<typeof publishedRole>;
 
 export const TAGS = ['Banking', 'AI product', 'Requirements', 'Process', 'Data', 'AI governance'] as const;

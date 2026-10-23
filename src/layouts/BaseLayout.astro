@@ -18,6 +18,10 @@ interface Props {
   canonical?: boolean;
   /** The share image's name in /og/: a role page passes its slug; every other page shares the site image. */
   ogImage?: string;
+  /** og:title when it differs from the page title: a case study shares its title without the name (P4.5). */
+  ogTitle?: string;
+  /** og:image:alt when it differs from the default: a role page passes its full CV title (P4.5). */
+  ogImageAlt?: string;
   /** "article" on case studies (SPEC 9.3). */
   ogType?: 'website' | 'article';
   /** JSON-LD for search engines (SPEC 9.3), from src/lib/seo.ts. */
@@ -32,13 +36,15 @@ const {
   contactLine,
   canonical: hasCanonical = true,
   ogImage = SITE_OG,
+  ogTitle = title,
+  ogImageAlt,
   ogType = 'website',
   jsonLd,
 } = Astro.props;
 const canonical = hasCanonical ? new URL(Astro.url.pathname, Astro.site) : undefined;
 const image = new URL(ogImagePath(ogImage), Astro.site);
-// The image shows the name with the root line, or on a role page the name and role title (the page title).
-const imageAlt = ogImage === SITE_OG ? `${site.name}: ${site.rootLine}` : title;
+// The site image shows the name with the root line; a role page passes the name and full CV title its image shows.
+const imageAlt = ogImageAlt ?? (ogImage === SITE_OG ? `${site.name}: ${site.rootLine}` : title);
 // The CSP in public/_headers allows the theme script by its hash. A Windows checkout gives it CRLF line endings,
 // which would change the hash, so it is always built with LF.
 const theme = themeScript.replace(/\r\n?/g, '\n');
@@ -59,7 +65,7 @@ const beacon = site.analyticsToken ? JSON.stringify({ token: site.analyticsToken
           <link rel="canonical" href={canonical} />
           <meta property="og:type" content={ogType} />
           <meta property="og:url" content={canonical} />
-          <meta property="og:title" content={title} />
+          <meta property="og:title" content={ogTitle} />
           <meta property="og:description" content={description} />
           <meta property="og:site_name" content={site.name} />
           <meta property="og:locale" content="en_GB" />
