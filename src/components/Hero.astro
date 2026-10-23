@@ -21,19 +21,21 @@ interface Props {
   proof: { figure: string; text: string }[];
   /** SPEC 8: off by default. With it on, the image sits beside the name on desktop and above it on mobile. */
   headshot?: { show: boolean; src: string };
+  /** The h1's id, for aria-labelledby. Pass a different one if a page ever shows two heroes. */
+  headingId?: string;
 }
 
-const { name, title, positioning, supporting, workHref, cvFile, email, linkedin, contactLine, location, proof, headshot } =
+const { name, title, positioning, supporting, workHref, cvFile, email, linkedin, contactLine, location, proof, headshot, headingId = 'hero-name' } =
   Astro.props;
 const showHeadshot = Boolean(headshot?.show && headshot.src);
 ---
 
-<section class="container hero" aria-labelledby="hero-name">
+<section class="container hero" aria-labelledby={headingId}>
   <div class="hero__band" aria-hidden="true"></div>
   <div class:list={['hero__intro', { 'hero__intro--headshot': showHeadshot }]}>
     {showHeadshot && <img class="hero__headshot" src={headshot!.src} alt={name} width="160" height="160" />}
     <div>
-      <h1 id="hero-name">{name}</h1>
+      <h1 id={headingId}>{name}</h1>
       <p class="hero__title">{title}</p>
       <p class="hero__positioning">{positioning}</p>
     </div>
